@@ -1,0 +1,29 @@
+{
+  "name": "halacious",
+  "version": "0.0.0",
+  "description": "A better HAL processor for Hapi",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bleupen/halacious"
+  },
+  "keywords": [
+    "HAL",
+    "Hapi",
+    "hypermedia"
+  ],
+  "author": "Brad Leupen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bleupen/halacious/issues"
+  },
+  "homepage": "https://github.com/bleupen/halacious",
+  "devDependencies": {
+    "hapi": "^3.1.0",
+    "mocha": "^1.20.1",
+    "chai": "^1.9.1"
+  }
+}
