@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<h1>Namespaces</h1>
+<ul>
+{% for namespace in namespaces %}
+    <li><h2>{{ namespace.name }}</h2> {{namespace.description}}</li>
+    <ul>
+        {% for rel in namespace.rels %}
+            <li><a href="{{path}}/{{namespace.name}}/{{rel.name}}">{{ rel.name }}</a> {{ rel.description }}</li>
+        {% endfor %}
+    </ul>
+{% endfor %}
+</ul>
+</body>
+</html>

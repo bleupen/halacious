@@ -29,7 +29,10 @@
     "sinon-chai": "^2.5.0"
   },
   "dependencies": {
+    "hoek": "^2.3.0",
     "joi": "^4.5.0",
-    "lodash": "^2.4.1"
+    "lodash": "^2.4.1",
+    "swig": "^1.3.2",
+    "swig-extras": "0.0.1"
   }
 }
