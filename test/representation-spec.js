@@ -43,7 +43,15 @@ describe('Representation Factory', function() {
 
         var entity = { firstName: 'Bob', lastName: 'Smith' };
         var rep = rf.create('/people', entity);
+        rep.link('mco:boss', '/people/1234');
         rep._links.should.have.property('mco:boss');
         rep._links['mco:boss'].should.have.property('href', '/people/1234');
+    });
+
+    it('should resolve relative paths', function () {
+        var entity = { firstName: 'Bob', lastName: 'Smith' };
+        var rep = rf.create('/people', entity);
+        var href = rep.resolve('./1234');
+        href.should.equal('/people/1234');
     });
 });
