@@ -54,4 +54,15 @@ describe('Representation Factory', function() {
         var href = rep.resolve('./1234');
         href.should.equal('/people/1234');
     });
+
+    it('should include a curie link', function () {
+        halacious.namespaces
+            .add({ name: 'mycompany', prefix: 'mco' })
+            .rel({ name: 'boss' });
+
+        var rep = rf.create('/people', {});
+        rep.link('mco:boss', '/people/1234');
+        var json = JSON.stringify(rep);
+        json.should.deep.equal('{"_links":{"self":{"href":"/people"}},"curies":[{"name":"mco","href":"/rels/mycompany/{rel}","templated":true}]}');
+    });
 });
