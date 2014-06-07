@@ -149,4 +149,257 @@ describe('Halacious Plugin', function () {
             done();
         });
     });
+
+    it('should convert a json entity into a HAL representation with self and a simple link', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people/{id}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ firstName: 'Bob', lastName: 'Smith' });
+                },
+                plugins: {
+                    hal: {
+                        _links: {
+                            'mco:boss': './boss'
+                        }
+                    }
+                }
+            }
+        });
+
+        server.pack.require('..', {}, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people/100',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people/100' },
+                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
+                    'mco:boss': { href: '/people/100/boss' }
+                },
+                firstName: 'Bob',
+                lastName: 'Smith'
+            });
+            done();
+        });
+    });
+
+    it('should convert a json entity into a HAL representation with self and a templated link', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people/{id}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234' });
+                },
+                plugins: {
+                    hal: {
+                        _links: {
+                            'mco:boss': { href: '../{bossId}', title: 'Boss' }
+                        }
+                    }
+                }
+            }
+        });
+
+        server.pack.require('..', {}, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people/100',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people/100' },
+                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
+                    'mco:boss': { href: '/people/1234', title: 'Boss' }
+                },
+                firstName: 'Bob',
+                lastName: 'Smith',
+                bossId: '1234'
+            });
+            done();
+        });
+    });
+
+    it('should allow for programmatic population of a hal entity', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people/{id}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234' });
+                },
+                plugins: {
+                    hal: {
+                        builder: function(rep, done) {
+                            rep.link('mco:boss', 'http://www.whitehouse.gov');
+                            done();
+                        }
+                    }
+                }
+            }
+        });
+
+        server.pack.require('..', {}, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people/100',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people/100' },
+                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
+                    'mco:boss': { href: 'http://www.whitehouse.gov' }
+                },
+                firstName: 'Bob',
+                lastName: 'Smith',
+                bossId: '1234'
+            });
+            done();
+        });
+    });
+
+    it('should support a hal configuration function', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people/{id}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234' });
+                },
+                plugins: {
+                    hal: function(rep, done) {
+                        rep.link('mco:boss', 'http://www.whitehouse.gov');
+                        done();
+                    }
+                }
+            }
+        });
+
+        server.pack.require('..', {}, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people/100',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people/100' },
+                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
+                    'mco:boss': { href: 'http://www.whitehouse.gov' }
+                },
+                firstName: 'Bob',
+                lastName: 'Smith',
+                bossId: '1234'
+            });
+            done();
+        });
+    });
+
+    it('should provide embedded collection support', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people/100/boss',
+            handler: function (req, reply) {
+                reply({ firstName: 'Boss', lastName: 'Man' });
+            }
+        });
+
+        server.route({
+            method: 'get',
+            path: '/people/{id}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234' });
+                },
+                plugins: {
+                    hal: {
+                        _embed: {
+                            'mco:boss': './boss'
+                        }
+                    }
+                }
+            }
+        });
+
+        server.pack.require('..', {}, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people/100',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people/100' },
+                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }]
+                },
+                firstName: 'Bob',
+                lastName: 'Smith',
+                bossId: '1234',
+                _embed: {
+                    'inf:boss': {
+                        _links: { self: { href: '/people/100/boss'} },
+                        firstName: 'Boss',
+                        lastName: 'Man'
+                    }
+                }
+            });
+            done();
+        });
+    });
 });
