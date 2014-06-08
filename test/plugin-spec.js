@@ -93,6 +93,40 @@ describe('Halacious Plugin', function () {
         });
     });
 
+    it('should bomb on a bad rel in strict mode', function (done) {
+        var server = new hapi.Server(9090);
+
+        server.route({
+            method: 'get',
+            path: '/foo',
+            config: {
+                handler: function (req, reply) {
+                    reply({ name: 'Billy Bob' });
+                },
+                plugins: {
+                    hal: {
+                        links: {
+                            'mco:badRel': './badRel'
+                        }
+                    }
+                }
+            }
+        });
+
+        server.pack.require('..', { strict: true }, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
+            server.inject({
+                method: 'get',
+                url: '/foo',
+                headers: { Accept: 'application/hal+json' }
+            }, function (res) {
+                res.statusCode.should.equal(500);
+                done();
+            });
+        });
+    });
+
     it('should install a directory-style namespace', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
