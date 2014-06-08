@@ -32,10 +32,10 @@ describe('Halacious Plugin', function () {
     it('should create a namespace', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            var ns = server.plugins.halacious.namespaces.add({ name: 'informer', prefix: 'inf' });
+            var ns = server.plugins.halacious.namespaces.add({ name: 'mcoormer', prefix: 'mco' });
             should.exist(ns);
-            ns.should.have.property('name', 'informer');
-            ns.should.have.property('prefix', 'inf');
+            ns.should.have.property('name', 'mcoormer');
+            ns.should.have.property('prefix', 'mco');
             ns.should.have.property('rel');
             ns.rel.should.be.a('Function');
             done();
@@ -45,12 +45,12 @@ describe('Halacious Plugin', function () {
     it('should look up a namespace', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            server.plugins.halacious.namespaces.add({ name: 'informer', prefix: 'inf' });
-            var ns = server.plugins.halacious.namespace('informer');
-            ns.rel({ name: 'datasources', description: 'A list of datasources' });
-            ns.rels.should.have.property('datasources');
-            ns.rels.datasources.should.have.property('name', 'datasources');
-            ns.rels.datasources.should.have.property('description', 'A list of datasources');
+            server.plugins.halacious.namespaces.add({ name: 'mcoormer', prefix: 'mco' });
+            var ns = server.plugins.halacious.namespace('mcoormer');
+            ns.rel({ name: 'boss', description: 'An employees boss' });
+            ns.rels.should.have.property('boss');
+            ns.rels.boss.should.have.property('name', 'boss');
+            ns.rels.boss.should.have.property('description', 'An employees boss');
             done();
         });
     });
@@ -58,11 +58,11 @@ describe('Halacious Plugin', function () {
     it('should add a rel to a namespace', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            var ns = server.plugins.halacious.namespaces.add({ name: 'informer', prefix: 'inf' });
-            ns.rel({ name: 'datasources', description: 'A list of datasources' });
-            ns.rels.should.have.property('datasources');
-            ns.rels.datasources.should.have.property('name', 'datasources');
-            ns.rels.datasources.should.have.property('description', 'A list of datasources');
+            var ns = server.plugins.halacious.namespaces.add({ name: 'mcoormer', prefix: 'mco' });
+            ns.rel({ name: 'boss', description: 'An employees boss' });
+            ns.rels.should.have.property('boss');
+            ns.rels.boss.should.have.property('name', 'boss');
+            ns.rels.boss.should.have.property('description', 'An employees boss');
             done();
         });
     });
@@ -70,9 +70,9 @@ describe('Halacious Plugin', function () {
     it('should look up a rel by prefix:name', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            var ns = server.plugins.halacious.namespaces.add({ name: 'informer', prefix: 'inf' });
+            var ns = server.plugins.halacious.namespaces.add({ name: 'mcoormer', prefix: 'mco' });
             ns.rel({ name: 'datasources', description: 'A list of datasources' });
-            var rel = server.plugins.halacious.rel('inf:datasources');
+            var rel = server.plugins.halacious.rel('mco:datasources');
             should.exist(rel);
             rel.should.have.property('name', 'datasources');
             rel.should.have.property('description', 'A list of datasources');
@@ -83,9 +83,9 @@ describe('Halacious Plugin', function () {
     it('should look up a rel by ns / name', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            var ns = server.plugins.halacious.namespaces.add({ name: 'informer', prefix: 'inf' });
+            var ns = server.plugins.halacious.namespaces.add({ name: 'mcoormer', prefix: 'mco' });
             ns.rel({ name: 'datasources', description: 'A list of datasources' });
-            var rel = server.plugins.halacious.rel('informer', 'datasources');
+            var rel = server.plugins.halacious.rel('mcoormer', 'datasources');
             should.exist(rel);
             rel.should.have.property('name', 'datasources');
             rel.should.have.property('description', 'A list of datasources');
@@ -96,9 +96,9 @@ describe('Halacious Plugin', function () {
     it('should install a directory-style namespace', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            var ns = server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/informer', prefix: 'inf' });
-            var rel1 = server.plugins.halacious.rel('inf:datasources');
-            var rel2 = server.plugins.halacious.rel('inf:datasource');
+            var ns = server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
+            var rel1 = server.plugins.halacious.rel('mco:datasources');
+            var rel2 = server.plugins.halacious.rel('mco:datasource');
             should.exist(ns);
             should.exist(rel1);
             should.exist(rel2);
@@ -112,10 +112,10 @@ describe('Halacious Plugin', function () {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
             if (err) return done(err);
-            var ns = server.plugins.halacious.namespaces.add({dir: __dirname + '/rels/informer', prefix: 'inf'});
+            var ns = server.plugins.halacious.namespaces.add({dir: __dirname + '/rels/mycompany', prefix: 'mco'});
             server.inject({
                 method: 'get',
-                url: '/rels/informer/datasources'
+                url: '/rels/mycompany/boss'
             }, function (res) {
                 res.statusCode.should.equal(200);
                 res.payload.should.not.be.empty;
@@ -163,7 +163,7 @@ describe('Halacious Plugin', function () {
                 },
                 plugins: {
                     hal: {
-                        _links: {
+                        links: {
                             'mco:boss': './boss'
                         }
                     }
@@ -210,7 +210,7 @@ describe('Halacious Plugin', function () {
                 },
                 plugins: {
                     hal: {
-                        _links: {
+                        links: {
                             'mco:boss': { href: '../{bossId}', title: 'Boss' }
                         }
                     }
@@ -258,7 +258,7 @@ describe('Halacious Plugin', function () {
                 },
                 plugins: {
                     hal: {
-                        builder: function(rep, done) {
+                        prepare: function(rep, done) {
                             rep.link('mco:boss', 'http://www.whitehouse.gov');
                             done();
                         }
@@ -341,29 +341,24 @@ describe('Halacious Plugin', function () {
         });
     });
 
-    it('should provide embedded collection support', function (done) {
+    it('should embed an object property', function (done) {
         var server = new hapi.Server(9090);
         var result;
-
-        server.route({
-            method: 'get',
-            path: '/people/100/boss',
-            handler: function (req, reply) {
-                reply({ firstName: 'Boss', lastName: 'Man' });
-            }
-        });
 
         server.route({
             method: 'get',
             path: '/people/{id}',
             config: {
                 handler: function (req, reply) {
-                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234' });
+                    reply({ firstName: 'Bob', lastName: 'Smith', boss: { firstName: 'Boss', lastName: 'Man'} });
                 },
                 plugins: {
                     hal: {
-                        _embed: {
-                            'mco:boss': './boss'
+                        embed: {
+                            'mco:boss': {
+                                path: 'boss',
+                                href: './boss'
+                            }
                         }
                     }
                 }
@@ -390,14 +385,193 @@ describe('Halacious Plugin', function () {
                 },
                 firstName: 'Bob',
                 lastName: 'Smith',
-                bossId: '1234',
-                _embed: {
-                    'inf:boss': {
+                _embedded: {
+                    'mco:boss': {
                         _links: { self: { href: '/people/100/boss'} },
                         firstName: 'Boss',
                         lastName: 'Man'
                     }
                 }
+            });
+            done();
+        });
+    });
+
+    it('should support embedded url templates', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people/{id}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ id: 100, firstName: 'Bob', lastName: 'Smith', boss: { id: 200, firstName: 'Boss', lastName: 'Man'} });
+                },
+                plugins: {
+                    hal: {
+                        embed: {
+                            'mco:boss': {
+                                path: 'boss',
+                                href: '/people/{self.id}/{item.id}'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        server.pack.require('..', {}, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people/100',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people/100' },
+                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }]
+                },
+                id: 100,
+                firstName: 'Bob',
+                lastName: 'Smith',
+                _embedded: {
+                    'mco:boss': {
+                        _links: { self: { href: '/people/100/200'} },
+                        id: 200,
+                        firstName: 'Boss',
+                        lastName: 'Man'
+                    }
+                }
+            });
+            done();
+        });
+    });
+
+    it('should provide embedded collection support', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people',
+            config: {
+                handler: function (req, reply) {
+                    reply({
+                        start: 0,
+                        count: 2,
+                        total: 2,
+                        items: [
+                            { id: 100, firstName: 'Bob', lastName: 'Smith' },
+                            { id: 200, firstName: 'Boss', lastName: 'Man'}
+                        ]
+                    });
+                },
+                plugins: {
+                    hal: {
+                        embed: {
+                            'mco:person': {
+                                path: 'items',
+                                href: './{item.id}'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        server.pack.require('..', {}, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people' },
+                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }]
+                },
+                start: 0,
+                count: 2,
+                total: 2,
+                _embedded: {
+                    'mco:person': [
+                        {
+                            _links: { self: { href: '/people/100' }},
+                            id: 100,
+                            firstName: 'Bob',
+                            lastName: 'Smith'
+                        },
+                        {
+                            _links: { self: { href: '/people/200' }},
+                            id: 200,
+                            firstName: 'Boss',
+                            lastName: 'Man'
+                        },
+                    ]
+                }
+            });
+            done();
+        });
+    });
+
+    it('should invoke an optional toHal() method on the source entity', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+        server.route({
+            method: 'get',
+            path: '/people/{id}',
+            config: {
+                handler: function (req, reply) {
+                    reply({
+                        firstName: 'Bob',
+                        lastName: 'Smith',
+                        bossId: '1234',
+                        toHal: function(rep, done) {
+                            rep.link('mco:boss', './boss');
+                            done();
+                        }
+                    });
+                }
+            }
+        });
+
+        server.pack.require('..', {}, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people/100',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people/100' },
+                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
+                    'mco:boss': { href: '/people/100/boss' }
+                },
+                firstName: 'Bob',
+                lastName: 'Smith',
+                bossId: '1234'
             });
             done();
         });

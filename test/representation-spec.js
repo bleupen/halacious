@@ -2,7 +2,6 @@
 
 var chai = require('chai');
 var should = chai.should();
-var plugin = require('../lib/plugin');
 var hapi = require('hapi');
 var RepresentationFactory = require('../lib/representation').RepresentationFactory;
 
@@ -63,14 +62,67 @@ describe('Representation Factory', function() {
                 return {
                     id: this._id,
                     name: this.name,
-                    company: this.company
+                    company: this.company,
+                    boss: this.boss
+                }
+            },
+            boss: {
+                _id: 100,
+                _hidden: 'hidden',
+                name: 'Boss Man',
+                company: 'Acme',
+                toJSON: function () {
+                    return {
+                        id: this._id,
+                        name: this.name,
+                        company: this.company
+                    }
                 }
             }
         };
 
         var rep = rf.create(entity, '/me');
         var json = JSON.stringify(rep);
-        json.should.deep.equal('{"_links":{"self":{"href":"/me"}},"id":100,"name":"John Smith","company":"Acme"}');
+        json.should.deep.equal('{"_links":{"self":{"href":"/me"}},"id":100,"name":"John Smith","company":"Acme","boss":{"id":100,"name":"Boss Man","company":"Acme"}}');
+    });
+
+    it('should embed a collection', function () {
+        var entity = {
+            start: 0,
+            count: 2,
+            total: 2
+        };
+
+        var items = [
+            { id: 100, firstName: 'Bob', lastName: 'Smith' },
+            { id: 200, firstName: 'Boss', lastName: 'Man'}
+        ];
+
+        var rep = rf.create(entity, '/people');
+        rep.embedCollection('mco:person', '/people/{item.id}', items)
+        var json = JSON.stringify(rep);
+        var obj = JSON.parse(json);
+        obj.should.deep.equal({
+            _links: {
+                self: {href: '/people'},
+                curies: [
+                    {
+                        href: '/rels/mycompany/{rel}',
+                        name: 'mco',
+                        templated: true
+                    }
+                ]
+            },
+            start: 0,
+            count: 2,
+            total: 2,
+            _embedded: {
+                'mco:person': [
+                    { _links: { self: { href: '/people/100' }}, id: 100, firstName: 'Bob', lastName: 'Smith' },
+                    { _links: { self: { href: '/people/200' }}, id: 200, firstName: 'Boss', lastName: 'Man' }
+                ]
+            }
+        })
     });
 
     it('should link to a registered rel', function () {
