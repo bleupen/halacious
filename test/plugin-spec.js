@@ -479,7 +479,10 @@ describe('Halacious Plugin', function () {
                         embed: {
                             'mco:person': {
                                 path: 'items',
-                                href: './{item.id}'
+                                href: './{item.id}',
+                                links: {
+                                    'mco:boss': './boss'
+                                }
                             }
                         }
                     }
@@ -511,13 +514,13 @@ describe('Halacious Plugin', function () {
                 _embedded: {
                     'mco:person': [
                         {
-                            _links: { self: { href: '/people/100' }},
+                            _links: { self: { href: '/people/100' }, 'mco:boss': { href: '/people/100/boss'}},
                             id: 100,
                             firstName: 'Bob',
                             lastName: 'Smith'
                         },
                         {
-                            _links: { self: { href: '/people/200' }},
+                            _links: { self: { href: '/people/200' }, 'mco:boss': { href: '/people/200/boss'}},
                             id: 200,
                             firstName: 'Boss',
                             lastName: 'Man'
