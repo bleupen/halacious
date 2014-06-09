@@ -6,6 +6,39 @@ var server = new hapi.Server(9090);
 
 server.route({
     method: 'get',
+    path: '/people',
+    config: {
+        handler: function (req, reply) {
+            reply ({
+                count: 2,
+                start: 0,
+                total: 2,
+                items: [
+                    { id: 100, firstName: 'Bob', lastName: 'Smith' },
+                    { id: 200, firstName: 'Boss', lastName: 'Man'}
+                ]
+            });
+            reply({ _id: req.params.id, firstName: 'Brad', lastName: 'Leupen'});
+        },
+        plugins: {
+            hal: {
+                api: 'mco:people',
+                embedded: {
+                    'mco:person': {
+                        path: 'items',
+                        href: './{item.id}',
+                        links: {
+                            'mco:boss': './boss'
+                        }
+                    }
+                }
+            }
+        }
+    }
+});
+
+server.route({
+    method: 'get',
     path: '/people/{id}',
     config: {
         handler: function (req, reply) {
@@ -13,6 +46,7 @@ server.route({
         },
         plugins: {
             hal: {
+                api: 'mco:person',
                 links: {
                     'mco:boss': './boss'
                 },
