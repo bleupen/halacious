@@ -458,7 +458,7 @@ describe('Halacious Plugin', function () {
                 },
                 plugins: {
                     hal: {
-                        embed: {
+                        embedded: {
                             'mco:boss': {
                                 path: 'boss',
                                 href: './boss'
@@ -514,7 +514,7 @@ describe('Halacious Plugin', function () {
                 },
                 plugins: {
                     hal: {
-                        embed: {
+                        embedded: {
                             'mco:boss': {
                                 path: 'boss',
                                 href: '/people/{self.id}/{item.id}'
@@ -580,7 +580,7 @@ describe('Halacious Plugin', function () {
                 },
                 plugins: {
                     hal: {
-                        embed: {
+                        embedded: {
                             'mco:person': {
                                 path: 'items',
                                 href: './{item.id}',
