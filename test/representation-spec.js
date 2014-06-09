@@ -35,6 +35,30 @@ describe('Representation Factory', function() {
         json.should.deep.equal('{"_links":{"self":{"href":"/people"}},"firstName":"Bob","lastName":"Smith"}');
     });
 
+    it('should create an array of like-named links', function () {
+        var entity = {};
+        var rep = rf.create(entity, '/people');
+        rep.link('mco:boss', '/people/100');
+        rep.link('mco:boss', '/people/101');
+        rep.link('mco:boss', '/people/102');
+        rep._links['mco:boss'].should.have.length(3);
+        rep._links['mco:boss'][0].should.have.property('href', '/people/100');
+        rep._links['mco:boss'][1].should.have.property('href', '/people/101');
+        rep._links['mco:boss'][2].should.have.property('href', '/people/102');
+    });
+
+    it('should create an array of like-named embeds', function () {
+        var entity = {};
+        var rep = rf.create(entity, '/people');
+        rep.embed('mco:boss', '/people/100', {});
+        rep.embed('mco:boss', '/people/101', {});
+        rep.embed('mco:boss', '/people/102', {});
+        rep._embedded['mco:boss'].should.have.length(3);
+        rep._embedded['mco:boss'][0]._links.self.should.have.property('href', '/people/100');
+        rep._embedded['mco:boss'][1]._links.self.should.have.property('href', '/people/101');
+        rep._embedded['mco:boss'][2]._links.self.should.have.property('href', '/people/102');
+    });
+
     it('should ignore properties', function () {
         var obj = { id: 100, first: 'John', last: 'Smith'};
         var rep = rf.create(obj, '/people');

@@ -1,13 +1,12 @@
 'use strict';
 
-var mocha = require('mocha');
 var chai = require('chai');
 var should = chai.should();
 var plugin = require('../lib/plugin');
 var hapi = require('hapi');
 var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
-var fs = require('fs');
+var _ = require('lodash');
 chai.use(sinonChai);
 
 var hapiPlugin = {
@@ -15,6 +14,14 @@ var hapiPlugin = {
 };
 
 describe('Halacious Plugin', function () {
+    beforeEach(function (done) {
+        var server = new hapi.Server(9090);
+        server.pack.require('..', {}, function (err) {
+            server.plugins.halacious.namespaces.remove();
+            done();
+        });
+    });
+
     it('should have a registration function', function () {
         plugin.should.have.property('register');
         plugin.register.should.be.a('Function');
@@ -32,9 +39,9 @@ describe('Halacious Plugin', function () {
     it('should create a namespace', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            var ns = server.plugins.halacious.namespaces.add({ name: 'mcoormer', prefix: 'mco' });
+            var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
             should.exist(ns);
-            ns.should.have.property('name', 'mcoormer');
+            ns.should.have.property('name', 'mycompany');
             ns.should.have.property('prefix', 'mco');
             ns.should.have.property('rel');
             ns.rel.should.be.a('Function');
@@ -45,8 +52,8 @@ describe('Halacious Plugin', function () {
     it('should look up a namespace', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            server.plugins.halacious.namespaces.add({ name: 'mcoormer', prefix: 'mco' });
-            var ns = server.plugins.halacious.namespace('mcoormer');
+            server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
+            var ns = server.plugins.halacious.namespace('mycompany');
             ns.rel({ name: 'boss', description: 'An employees boss' });
             ns.rels.should.have.property('boss');
             ns.rels.boss.should.have.property('name', 'boss');
@@ -55,10 +62,34 @@ describe('Halacious Plugin', function () {
         });
     });
 
+    it('should return a sorted array of namespaces', function () {
+        var server = new hapi.Server(9090);
+        server.pack.require('..', {}, function (err) {
+            var namespaces;
+            server.plugins.halacious.namespaces.add({ name: 'yourcompany', prefix: 'yco' });
+            server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
+            server.plugins.halacious.namespaces.add({ name: 'ourcompany', prefix: 'oco' });
+
+            namespaces = server.plugins.halacious.namespaces();
+            namespaces.should.have.length(3);
+            namespaces[0].should.have.property('name', 'mycompany');
+            namespaces[1].should.have.property('name', 'ourcompany');
+            namespaces[2].should.have.property('name', 'yourcompany');
+        });
+    });
+
+    it('should fail when registering an invalid namespace', function () {
+        var server = new hapi.Server(9090);
+        server.pack.require('..', {}, function (err) {
+            var plugin = server.plugins.halacious;
+            plugin.namespaces.add.bind(plugin.namespaces, { name: 'mycompany', prefirx: 'mco'}).should.throw('prefirx is not allowed');
+        });
+    });
+    
     it('should add a rel to a namespace', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            var ns = server.plugins.halacious.namespaces.add({ name: 'mcoormer', prefix: 'mco' });
+            var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
             ns.rel({ name: 'boss', description: 'An employees boss' });
             ns.rels.should.have.property('boss');
             ns.rels.boss.should.have.property('name', 'boss');
@@ -70,7 +101,7 @@ describe('Halacious Plugin', function () {
     it('should look up a rel by prefix:name', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            var ns = server.plugins.halacious.namespaces.add({ name: 'mcoormer', prefix: 'mco' });
+            var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
             ns.rel({ name: 'datasources', description: 'A list of datasources' });
             var rel = server.plugins.halacious.rel('mco:datasources');
             should.exist(rel);
@@ -80,15 +111,54 @@ describe('Halacious Plugin', function () {
         });
     });
 
+    it('should remove a namespace', function() {
+        var server = new hapi.Server(9090);
+        server.pack.require('..', {}, function (err) {
+            server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
+            server.plugins.halacious.namespaces.add({ name: 'yourcompany', prefix: 'yco' });
+            server.plugins.halacious.namespaces().should.have.length(2);
+            server.plugins.halacious.namespaces.remove('yourcompany');
+            server.plugins.halacious.namespaces().should.have.length(1);
+            server.plugins.halacious.namespaces()[0].should.have.property('name', 'mycompany');
+        });
+    });
+
     it('should look up a rel by ns / name', function (done) {
         var server = new hapi.Server(9090);
         server.pack.require('..', {}, function (err) {
-            var ns = server.plugins.halacious.namespaces.add({ name: 'mcoormer', prefix: 'mco' });
+            var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
             ns.rel({ name: 'datasources', description: 'A list of datasources' });
-            var rel = server.plugins.halacious.rel('mcoormer', 'datasources');
+            var rel = server.plugins.halacious.rel('mycompany', 'datasources');
             should.exist(rel);
             rel.should.have.property('name', 'datasources');
             rel.should.have.property('description', 'A list of datasources');
+            done();
+        });
+    });
+
+    it('should add a rel to a specified namespace', function (done) {
+        var server = new hapi.Server(9090);
+        server.pack.require('..', {}, function (err) {
+            var rels, plugin = server.plugins.halacious;
+            plugin.namespaces.add({ name: 'thiscompany', prefix: 'tco' });
+            plugin.rels.add('thiscompany', 'a_rel');
+            plugin.rels.add('thiscompany', { name: 'b_rel' });
+            rels = _.values(plugin.namespace('thiscompany').rels);
+            rels.should.have.length(2);
+            _.pluck(rels, 'name').should.deep.equal(['a_rel', 'b_rel']);
+            done();
+        });
+    });
+
+    it('should return a sorted list of rels', function (done) {
+        var server = new hapi.Server(9090);
+        server.pack.require('..', {}, function (err) {
+            var rels, plugin = server.plugins.halacious;
+            plugin.namespaces.add({ name: 'mycompany', prefix: 'mco' }).rel('a_rel').rel('c_rel');
+            plugin.namespaces.add({ name: 'yourcompany', prefix: 'yco'}).rel('b_rel').rel('d_rel');
+            rels = plugin.rels();
+            rels.should.have.length(4);
+            _.pluck(rels, 'name').should.deep.equal(['a_rel', 'b_rel', 'c_rel', 'd_rel']);
             done();
         });
     });
