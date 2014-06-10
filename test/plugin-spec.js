@@ -753,4 +753,78 @@ describe('Halacious Plugin', function () {
             done();
         });
     });
+    
+    it('should omit missing configured embedded entities', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people/{id}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234', foo: {id: '5678'}});
+                },
+                plugins: {
+                    hal: {
+                        prepare: function(rep, done) {
+                            rep.link('mco:boss', 'http://www.whitehouse.gov');
+                            done();
+                        },
+                        embedded: {
+                            'foo' : {
+                                path: 'foo',
+                                href: '/foo/{item.id}',
+                                prepare: function(rep, next) {
+                                    setTimeout(function() {
+                                        rep.link('foo:bar', 'http://www.foo.com');
+                                        next();
+                                    }, 500);
+                                }
+                            },
+                            'bar' : {
+                                path: 'notthere',
+                                href: '/bar/{item.id}'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        server.pack.require('..', {}, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people/100',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people/100' },
+                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
+                    'mco:boss': { href: 'http://www.whitehouse.gov' }
+                },
+                firstName: 'Bob',
+                lastName: 'Smith',
+                bossId: '1234',
+                _embedded: {
+                    foo: {
+                        _links: {
+                            self: { href: '/foo/5678' },
+                            'foo:bar': { href: 'http://www.foo.com' }
+                        },
+                        id: '5678'
+                    }
+                }
+            });
+            done();
+        });
+    });
 });
