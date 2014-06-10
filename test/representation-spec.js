@@ -46,6 +46,14 @@ describe('Representation Factory', function() {
         rep._links['mco:boss'][1].should.have.property('href', '/people/101');
         rep._links['mco:boss'][2].should.have.property('href', '/people/102');
     });
+    
+    it('should create a single-element array of links', function () {
+        var entity = {};
+        var rep = rf.create(entity, '/people');
+        rep.link('mco:boss', ['/people/100']);
+        rep._links['mco:boss'].should.have.length(1);
+        rep._links['mco:boss'][0].should.have.property('href', '/people/100');
+    });
 
     it('should create an array of like-named embeds', function () {
         var entity = {};
