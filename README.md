@@ -521,5 +521,3 @@ to true will help catch typos during development. Default: `false`
 - `apiPath` - the route path to the api root. Default: `/api`
 - `apiAuth` - the hapi authentication setting to use for the api route. Default: `false`
 - `apiServerLabel` - when set, Halacious will select for a specific server to route the api root. 
-
-##Route Configuration
