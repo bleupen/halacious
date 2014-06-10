@@ -4,8 +4,8 @@ a better HAL processor for Hapi
 
 ##Overview
 *Halacious* is a plugin for the HapiJS web application server that makes **HATEOASIFYING** your app ridiculously
-easy. When paired with a well-aged HAL client-side library, you will feel the warmth of loose API coupling and look
-down your nose at your friends who hard-code links in their SPAs. 
+easy. When paired with a well-aged HAL client-side library, you will feel the warmth of loose API coupling and the feeling
+of moral superiorty as you rid your SPA of hard-coded api links. 
 
 Halacious removes the boilerplate standing between between you and a Restful application, allowing you to focus on your app's
 secret sauce. Halacious embraces Hapi's configuration-centric approach to application scaffolding. Most common tasks can 
