@@ -14,7 +14,7 @@
         "HAL",
         "Hapi",
         "hypermedia",
-        "HATEOAS2"
+        "HATEOAS"
     ],
     "author": "Brad Leupen",
     "license": "MIT",
