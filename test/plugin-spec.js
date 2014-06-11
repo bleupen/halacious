@@ -893,4 +893,42 @@ describe('Halacious Plugin', function () {
             done();
         });
     });
+
+    it('should preserve 201 status code and use the location header when an entity has been POSTed', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'post',
+            path: '/people',
+            config: {
+                handler: function (req, reply) {
+                    reply({ id: 100, firstName: 'Bob', lastName: 'Smith' }).created('/people/100');
+                }
+            }
+        });
+
+        server.pack.require('..', {}, function (err) {
+            if (err) return done(err);
+
+        });
+
+        server.inject({
+            method: 'post',
+            url: '/people',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            res.statusCode.should.equal(201);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people/100' }
+                },
+                id: 100,
+                firstName: 'Bob',
+                lastName: 'Smith'
+            });
+            done();
+        });
+    });
 });
