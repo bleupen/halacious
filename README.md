@@ -521,3 +521,6 @@ to true will help catch typos during development. Default: `false`
 - `apiPath` - the route path to the api root. Default: `/api`
 - `apiAuth` - the hapi authentication setting to use for the api route. Default: `false`
 - `apiServerLabel` - when set, Halacious will select for a specific server to route the api root. 
+- `mediaTypes` - an array of media types that will trigger the hal processor to modify the response (e.g. `['application/json', 
+'application/hal+json']`). the media types are checked in order. if any match the accept header parameters, then the 
+response will be halified and the media type of the response will be set to the first winner. Default: `['application/hal+json']`

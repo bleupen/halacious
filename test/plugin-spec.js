@@ -931,4 +931,59 @@ describe('Halacious Plugin', function () {
             done();
         });
     });
+
+    it('should support an array of acceptable media types', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people/{id}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ firstName: 'Bob', lastName: 'Smith' });
+                }
+            }
+        });
+
+        server.pack.require('..', { mediaTypes: ['application/json', 'application/hal+json']}, function (err) {
+            if (err) return done(err);
+        });
+
+        // test application/json
+        server.inject({
+            method: 'get',
+            url: '/people/100'
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            res.headers['content-type'].should.contain('application/json');
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people/100' }
+                },
+                firstName: 'Bob',
+                lastName: 'Smith'
+            });
+
+            // test application/hal+json
+            server.inject({
+                method: 'get',
+                url: '/people/100',
+                headers: { 'Accept': 'application/hal+json' }
+            }, function (res) {
+                res.statusCode.should.equal(200);
+                res.headers['content-type'].should.contain('application/hal+json');
+                result = JSON.parse(res.payload);
+                result.should.deep.equal({
+                    _links: {
+                        self: { href: '/people/100' }
+                    },
+                    firstName: 'Bob',
+                    lastName: 'Smith'
+                });
+                done();
+            });
+        });
+    });
 });
