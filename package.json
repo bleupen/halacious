@@ -1,41 +1,42 @@
 {
-    "name": "halacious",
-    "version": "1.2.0",
-    "description": "A better HAL processor for Hapi",
-    "main": "index.js",
-    "scripts": {
-        "test": "node_modules/.bin/mocha test"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/bleupen/halacious"
-    },
-    "keywords": [
-        "HAL",
-        "Hapi",
-        "hypermedia",
-        "HATEOAS"
-    ],
-    "author": "Brad Leupen",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/bleupen/halacious/issues"
-    },
-    "homepage": "https://github.com/bleupen/halacious",
-    "devDependencies": {
-        "hapi": "^3.1.0",
-        "mocha": "^1.20.1",
-        "chai": "^1.9.1",
-        "sinon": "^1.10.2",
-        "sinon-chai": "^2.5.0"
-    },
-    "dependencies": {
-        "hoek": "^2.3.0",
-        "joi": "^4.5.0",
-        "lodash": "^2.4.1",
-        "swig": "^1.3.2",
-        "swig-extras": "0.0.1",
-        "url-template": "^2.0.4",
-        "async": "^0.9.0"
-    }
+  "name": "halacious",
+  "version": "1.1.4",
+  "description": "A better HAL processor for Hapi",
+  "main": "index.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bleupen/halacious"
+  },
+  "keywords": [
+    "HAL",
+    "Hapi",
+    "hypermedia",
+    "HATEOAS"
+  ],
+  "author": "Brad Leupen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bleupen/halacious/issues"
+  },
+  "homepage": "https://github.com/bleupen/halacious",
+  "devDependencies": {
+    "hapi": "^3.1.0",
+    "mocha": "^1.20.1",
+    "chai": "^1.9.1",
+    "sinon": "^1.10.2",
+    "sinon-chai": "^2.5.0"
+  },
+  "dependencies": {
+    "hoek": "^2.3.0",
+    "joi": "^4.5.0",
+    "lodash": "^2.4.1",
+    "swig": "^1.3.2",
+    "swig-extras": "0.0.1",
+    "url-template": "^2.0.4",
+    "async": "^0.9.0",
+    "negotiator": "^0.4.5"
+  }
 }

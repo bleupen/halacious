@@ -31,7 +31,6 @@ server.route({
     path: '/users',
     config: {
         handler: function (req, reply) {
-            // look up user
             reply({
                 start: 0,
                 count: 2,

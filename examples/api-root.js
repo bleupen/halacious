@@ -21,7 +21,6 @@ server.route({
     path: '/users',
     config: {
         handler: function (req, reply) {
-            // look up user
             reply({});
         },
         plugins: {
@@ -37,7 +36,6 @@ server.route({
     path: '/users/{userId}',
     config: {
         handler: function (req, reply) {
-            // look up user
             reply({});
         },
         plugins: {
@@ -53,7 +51,6 @@ server.route({
     path: '/widgets',
     config: {
         handler: function (req, reply) {
-            // look up user
             reply({});
         },
         plugins: {
@@ -69,7 +66,6 @@ server.route({
     path: '/widgets/{widgetId}',
     config: {
         handler: function (req, reply) {
-            // look up user
             reply({});
         },
         plugins: {

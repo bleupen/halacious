@@ -3,16 +3,12 @@
 var hapi = require('hapi');
 
 var halaciousOpts = {
-
+    mediaTypes: ['application/json', 'application/hal+json']
 };
 
 var server = new hapi.Server(8080);
 server.pack.require('../', halaciousOpts, function(err){
-    if (err) return console.log(err);
-    var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
-    ns.rel({ name: 'users', description: 'a collection of users' });
-    ns.rel({ name: 'user', description: 'a single user' });
-    ns.rel({ name: 'boss', description: 'a users boss' });
+    if (err) console.log(err);
 });
 
 server.route({
@@ -20,14 +16,14 @@ server.route({
     path: '/users/{userId}',
     config: {
         handler: function (req, reply) {
-            reply({ id: req.params.userId, name: 'User ' + req.params.userId, bossId: 200 });
+            reply({ id: req.params.userId, name: 'User ' + req.params.userId, googlePlusId: '107835557095464780852' });
         },
         plugins: {
             hal: {
                 links: {
-                    'mco:boss': '../{bossId}'
+                    'home': 'http://plus.google.com/{googlePlusId}'
                 },
-                ignore: 'bossId'
+                ignore: 'googlePlusId' // remove the id property from the response
             }
         }
     }
