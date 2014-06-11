@@ -20,7 +20,6 @@ server.route({
     path: '/users/{userId}',
     config: {
         handler: function (req, reply) {
-            // look up user
             reply({ id: req.params.userId, name: 'User ' + req.params.userId, bossId: 200 });
         },
         plugins: {
