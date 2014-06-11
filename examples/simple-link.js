@@ -16,7 +16,6 @@ server.route({
     path: '/users/{userId}',
     config: {
         handler: function (req, reply) {
-            // look up user
             reply({ id: req.params.userId, name: 'User ' + req.params.userId, googlePlusId: '107835557095464780852' });
         },
         plugins: {
