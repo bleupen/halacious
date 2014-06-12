@@ -37,6 +37,7 @@
     "swig-extras": "0.0.1",
     "url-template": "^2.0.4",
     "async": "^0.9.0",
-    "negotiator": "^0.4.5"
+    "negotiator": "^0.4.5",
+    "URIjs": "^1.13.2"
   }
 }
