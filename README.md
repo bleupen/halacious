@@ -343,6 +343,9 @@ or
     - `prepare(rep, next)` - an optional prepare function
     - `ignore` - A String or array of strings containing the names of properties to remove from the output. Can be used
     to remove reduntant information from the response
+    - `query` - An RFC 6570 compatible query string that should be communicated to your clients. See: http://tools.ietf.org/html/rfc6570.
+    Example: `{?q*,start,limit}`. These parameters will be included in top level api links. They will also be included in self links if supplied in the request.
+    Query parameters that are not included in the template, such as runtime tokens, will be excluded from the self href.
     - `links` - An object whose keys are rel names and whose values are href strings or link objects that contain
      at least an `href` property. Hrefs may be absolute or relative to the representation's self link. Hrefs may also contain
      `{expression}` template expressions, which are resolved against the wrapped entity. 

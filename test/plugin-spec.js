@@ -986,4 +986,60 @@ describe('Halacious Plugin', function () {
             });
         });
     });
+
+    it('should regurgitate known query parameters in the self link', function (done) {
+        var server = new hapi.Server(9090);
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people',
+            config: {
+                handler: function (req, reply) {
+                    reply({ items: [{ id: 100, firstName: 'Louis', lastName: 'CK' }]});
+                },
+                plugins: {
+                    hal: {
+                        embedded: {
+                            items: {
+                                path: 'items',
+                                href: './{item.id}'
+                            }
+                        },
+                        query: '{?q*,start,limit}'
+                    }
+                }
+            }
+        });
+
+        server.pack.require('..', { mediaTypes: ['application/json', 'application/hal+json']}, function (err) {
+            if (err) return done(err);
+        });
+
+        // test application/json
+        server.inject({
+            method: 'get',
+            url: '/people?q=funny&start=1&token=12345',
+            headers: { Accept: 'application/hal+json'}
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    self: { href: '/people?q=funny&start=1' }
+                },
+                _embedded: {
+                    items: [
+                        {
+                            _links: { self: { href: '/people/100' }},
+                            id: 100,
+                            firstName: 'Louis',
+                            lastName: 'CK'
+                        }
+                    ]
+                }
+            });
+            done();
+        });
+    });
 });
