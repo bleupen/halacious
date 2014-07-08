@@ -10,7 +10,7 @@ for (var i = 0; i < 100; i++) {
 }
 
 var server = new hapi.Server(8080);
-server.pack.require('../', {}, function(err){
+server.pack.require('../', { mediaTypes: ['application/json', 'application/hal+json']}, function(err){
     server.pack.plugins.halacious.namespaces.add({name: 'mycompay', prefix: 'mco'})
         .rel('user');
 
