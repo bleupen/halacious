@@ -1042,4 +1042,47 @@ describe('Halacious Plugin', function () {
             done();
         });
     });
+
+    it('should resolve relative locations', function (done) {
+        var server = new hapi.Server(9090, { location: '/api' });
+        var result;
+
+        server.route({
+            method: 'post',
+            path: '/api/people',
+            config: {
+                handler: function (req, reply) {
+                    reply({ id: 100, firstName: 'Louis', lastName: 'CK' }).created('people/100');
+                }
+            }
+        });
+
+        server.pack.require('..', { mediaTypes: ['application/json', 'application/hal+json']}, function (err) {
+            if (err) return done(err);
+        });
+
+        // test application/json
+        server.inject({
+            method: 'post',
+            url: '/api/people',
+            headers: { Accept: 'application/hal+json'}
+        }, function (res) {
+            try {
+                res.statusCode.should.equal(201);
+                result = JSON.parse(res.payload);
+                result.should.deep.equal({
+                    _links: {
+                        self: { href: '/api/people/100' }
+                    },
+                    id: 100,
+                    firstName: 'Louis',
+                    lastName: 'CK'
+                });
+                done();
+            }
+            catch (err) {
+                done(err);
+            }
+        });
+    });
 });
