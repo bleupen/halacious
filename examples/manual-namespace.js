@@ -1,13 +1,10 @@
 'use strict';
 
 var hapi = require('hapi');
-
-var halaciousOpts = {
-
-};
+var halacious = require('../');
 
 var server = new hapi.Server(8080);
-server.pack.require('../', halaciousOpts, function(err){
+server.pack.register(halacious, function(err){
     if (err) return console.log(err);
     var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
     ns.rel({ name: 'users', description: 'a collection of users' });

@@ -31,13 +31,10 @@ npm install halacious --save
 Register the plugin with the app server
 ```javascript
 var hapi = require('hapi');
-
-var halaciousOpts = { 
-    
-};
+var halacious = require('halacious');
 
 var server = new hapi.Server(8080);
-server.pack.require('halacious', halaciousOpts, function(err){
+server.pack.register(halacious, function(err){
     if (err) console.log(err);
 });
 
@@ -368,7 +365,8 @@ happily let you be lazy but its much better if we do things the Right Way.
 Halacious exposes its api to your Hapi server so that you may configure it at runtime like so:
  ```javascript
  var server = new hapi.Server(8080);
- server.pack.require('../', halaciousOpts, function(err){
+ var halacious = require('halacious');
+ server.pack.register(halacious, function(err){
      if (err) return console.log(err);
      var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
      ns.rel({ name: 'users', description: 'a collection of users' });
@@ -429,7 +427,8 @@ company's namespace. We can suck all these into the system in one fell swoop:
 
 ```javascript
 var server = new hapi.Server(8080);
-server.pack.require('../', halaciousOpts, function(err){
+var halacious = require('halacious');
+server.pack.register(halacious, function(err){
     if (err) return console.log(err);
     server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
 });
@@ -447,7 +446,7 @@ route for you automatically. All you need to do is to identify which resources t
 configuration option. For example:
 
 ```javascript
-server.pack.require('../', halaciousOpts, function(err){
+server.pack.register(halacious, function(err){
     if (err) return console.log(err);
     var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
     ns.rel({ name: 'users', description: 'a collection of users' });
