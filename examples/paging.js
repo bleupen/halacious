@@ -3,6 +3,7 @@
 var hapi = require('hapi');
 var URI = require('URIjs');
 var hoek = require('hoek');
+var halacious = require('../');
 var users = [];
 
 for (var i = 0; i < 100; i++) {
@@ -10,7 +11,7 @@ for (var i = 0; i < 100; i++) {
 }
 
 var server = new hapi.Server(8080);
-server.pack.require('../', { mediaTypes: ['application/json', 'application/hal+json']}, function(err){
+server.pack.register({ plugin: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function(err){
     server.pack.plugins.halacious.namespaces.add({name: 'mycompay', prefix: 'mco'})
         .rel('user');
 

@@ -1,13 +1,14 @@
 'use strict';
 
 var hapi = require('hapi');
+var halacious = require('../');
 
 var halaciousOpts = {
     mediaTypes: ['application/json', 'application/hal+json']
 };
 
 var server = new hapi.Server(8080);
-server.pack.require('../', halaciousOpts, function(err){
+server.pack.register({ plugin: halacious, options: halaciousOpts }, function(err){
     server.pack.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco'});
     if (err) console.log(err);
 });

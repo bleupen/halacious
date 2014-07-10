@@ -11,7 +11,7 @@ describe('Representation Factory', function() {
 
     beforeEach(function (done) {
         var server = new hapi.Server(9090);
-        server.pack.require('..', {}, function (err) {
+        server.pack.register(require('..'), function (err) {
             if (err) return done(err);
             halacious = server.plugins.halacious;
             rf = new RepresentationFactory(halacious);

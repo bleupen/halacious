@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/bleupen/halacious",
   "devDependencies": {
-    "hapi": "^3.1.0",
+    "hapi": "^6.x.x",
     "mocha": "^1.20.1",
     "chai": "^1.9.1",
     "sinon": "^1.10.2",

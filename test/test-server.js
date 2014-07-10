@@ -59,7 +59,7 @@ server.route({
         }
     }
 });
-server.pack.require('../', {}, function (err) {
+server.pack.register(require('../'), function (err) {
     if (err) throw err;
     server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco', description: 'My companys rels'});
     server.start(function (err) {
