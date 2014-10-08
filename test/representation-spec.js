@@ -133,8 +133,9 @@ describe('Representation Factory', function() {
     it('should resolve relative paths', function () {
         var entity = { firstName: 'Bob', lastName: 'Smith' };
         var rep = rf.create(entity, '/people');
-        var href = rep.resolve('./1234');
-        href.should.equal('/people/1234');
+        rep.resolve('./1234').should.equal('/people/1234');
+        rep.resolve('../1234').should.equal('/1234');
+        rep.resolve('/companies/100').should.equal('/companies/100');
     });
 
     it('should include a curie link', function () {
