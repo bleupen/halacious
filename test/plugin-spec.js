@@ -16,8 +16,9 @@ var hapiPlugin = {
 
 describe('Halacious Plugin', function () {
     beforeEach(function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             server.plugins.halacious.namespaces.remove();
             done();
         });
@@ -29,8 +30,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should expose a namespace function', function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             server.plugins.halacious.should.have.property('namespaces');
             server.plugins.halacious.namespace.should.be.a('Function');
             done();
@@ -38,8 +40,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should create a namespace', function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
             should.exist(ns);
             ns.should.have.property('name', 'mycompany');
@@ -51,8 +54,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should look up a namespace', function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
             var ns = server.plugins.halacious.namespace('mycompany');
             ns.rel({ name: 'boss', description: 'An employees boss' });
@@ -64,8 +68,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should return a sorted array of namespaces', function () {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             var namespaces;
             server.plugins.halacious.namespaces.add({ name: 'yourcompany', prefix: 'yco' });
             server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
@@ -80,16 +85,18 @@ describe('Halacious Plugin', function () {
     });
 
     it('should fail when registering an invalid namespace', function () {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             var plugin = server.plugins.halacious;
             plugin.namespaces.add.bind(plugin.namespaces, { name: 'mycompany', prefirx: 'mco'}).should.throw('prefirx is not allowed');
         });
     });
     
     it('should add a rel to a namespace', function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
             ns.rel({ name: 'boss', description: 'An employees boss' });
             ns.rels.should.have.property('boss');
@@ -100,8 +107,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should look up a rel by prefix:name', function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
             ns.rel({ name: 'datasources', description: 'A list of datasources' });
             var rel = server.plugins.halacious.rel('mco:datasources');
@@ -113,8 +121,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should remove a namespace', function() {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
             server.plugins.halacious.namespaces.add({ name: 'yourcompany', prefix: 'yco' });
             server.plugins.halacious.namespaces().should.have.length(2);
@@ -125,8 +134,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should look up a rel by ns / name', function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', prefix: 'mco' });
             ns.rel({ name: 'datasources', description: 'A list of datasources' });
             var rel = server.plugins.halacious.rel('mycompany', 'datasources');
@@ -138,8 +148,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should add a rel to a specified namespace', function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             var rels, plugin = server.plugins.halacious;
             plugin.namespaces.add({ name: 'thiscompany', prefix: 'tco' });
             plugin.rels.add('thiscompany', 'a_rel');
@@ -152,8 +163,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should return a sorted list of rels', function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             var rels, plugin = server.plugins.halacious;
             plugin.namespaces.add({ name: 'mycompany', prefix: 'mco' }).rel('a_rel').rel('c_rel');
             plugin.namespaces.add({ name: 'yourcompany', prefix: 'yco'}).rel('b_rel').rel('d_rel');
@@ -165,7 +177,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should bomb on a bad rel in strict mode', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
 
         server.route({
             method: 'get',
@@ -184,7 +197,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register({ plugin: halacious, options: { strict: true }}, function (err) {
+        server.register({ register: halacious, options: { strict: true }}, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
             server.inject({
@@ -199,8 +212,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should install a directory-style namespace', function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             var ns = server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
             var rel1 = server.plugins.halacious.rel('mco:datasources');
             var rel2 = server.plugins.halacious.rel('mco:datasource');
@@ -214,8 +228,9 @@ describe('Halacious Plugin', function () {
     });
 
     it('should route rel documentation', function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(halacious, function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(halacious, function (err) {
             if (err) return done(err);
             var ns = server.plugins.halacious.namespaces.add({dir: __dirname + '/rels/mycompany', prefix: 'mco'});
             server.inject({
@@ -230,7 +245,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should resolve a named route path', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
 
         server.route({
             method: 'get',
@@ -247,7 +263,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             var path = server.plugins.halacious.route('test-route', {a: 'i', b: 'aint', c: 'fack'});
             path.should.equal('/i/aint/fack');
@@ -256,7 +272,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should convert a json entity into a HAL representation with self and a simple link', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -276,7 +293,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -303,7 +320,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should convert a json entity into a HAL representation with self and a templated link', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -323,7 +341,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -351,7 +369,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should allow for programmatic population of a hal entity', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -372,7 +391,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -400,7 +419,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should support a hal configuration function', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -419,7 +439,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -447,7 +467,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should embed an object property', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -470,7 +491,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -503,7 +524,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should support embedded url templates', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -526,7 +548,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -561,7 +583,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should provide embedded collection support', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -595,7 +618,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -638,7 +661,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should invoke an optional toHal() method on the source entity', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
         server.route({
             method: 'get',
@@ -658,7 +682,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -686,7 +710,8 @@ describe('Halacious Plugin', function () {
     });
     
     it('should allow for programmatic population of a hal entity and it\'s configured embedded entities', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -719,7 +744,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -756,7 +781,8 @@ describe('Halacious Plugin', function () {
     });
     
     it('should omit missing configured embedded entities', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -791,7 +817,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -828,7 +854,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should allow an embedded entity to be forced to be a single element array', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -859,7 +886,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces
                 .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'boss' });
@@ -896,7 +923,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should preserve 201 status code and use the location header when an entity has been POSTed', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -909,7 +937,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register(halacious, function (err) {
+        server.register(halacious, function (err) {
             if (err) return done(err);
 
         });
@@ -938,7 +966,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should support an array of acceptable media types', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -951,7 +980,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register({ plugin: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+        server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
             if (err) return done(err);
         });
 
@@ -993,7 +1022,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should regurgitate known query parameters in the self link', function (done) {
-        var server = new hapi.Server(9090);
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -1017,7 +1047,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register({ plugin: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+        server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
             if (err) return done(err);
         });
 
@@ -1049,7 +1079,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should resolve relative locations', function (done) {
-        var server = new hapi.Server(9090, { location: '/api' });
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -1057,12 +1088,12 @@ describe('Halacious Plugin', function () {
             path: '/api/people',
             config: {
                 handler: function (req, reply) {
-                    reply({ id: 100, firstName: 'Louis', lastName: 'CK' }).created('people/100');
+                    reply({ id: 100, firstName: 'Louis', lastName: 'CK' }).created('api/people/100');
                 }
             }
         });
 
-        server.pack.register({ plugin: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+        server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
             if (err) return done(err);
         });
 
@@ -1092,7 +1123,8 @@ describe('Halacious Plugin', function () {
     });
 
     it('should preserve response headers', function (done) {
-        var server = new hapi.Server(9090, { location: '/api' });
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
         var result;
 
         server.route({
@@ -1105,7 +1137,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.pack.register({ plugin: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+        server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
             if (err) return done(err);
         });
 
