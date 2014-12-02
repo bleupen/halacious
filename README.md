@@ -33,8 +33,9 @@ Register the plugin with the app server
 var hapi = require('hapi');
 var halacious = require('halacious');
 
-var server = new hapi.Server(8080);
-server.pack.register(halacious, function(err){
+var server = new hapi.Server();
+server.connection({ port: 8080 });
+server.register(halacious, function(err){
     if (err) console.log(err);
 });
 
@@ -364,9 +365,10 @@ happily let you be lazy but its much better if we do things the Right Way.
 ### Manually creating a namespace
 Halacious exposes its api to your Hapi server so that you may configure it at runtime like so:
  ```javascript
- var server = new hapi.Server(8080);
+ var server = new hapi.Server();
+ server.connection({ port: 8080 });
  var halacious = require('halacious');
- server.pack.register(halacious, function(err){
+ server.register(halacious, function(err){
      if (err) return console.log(err);
      var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
      ns.rel({ name: 'users', description: 'a collection of users' });
@@ -426,9 +428,10 @@ In our examples folder, we have created a folder `rels/mycompany` containing mar
 company's namespace. We can suck all these into the system in one fell swoop:
 
 ```javascript
-var server = new hapi.Server(8080);
+var server = new hapi.Server();
+server.connection({ port: 8080 });
 var halacious = require('halacious');
-server.pack.register(halacious, function(err){
+server.register(halacious, function(err){
     if (err) return console.log(err);
     server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
 });
@@ -446,7 +449,7 @@ route for you automatically. All you need to do is to identify which resources t
 configuration option. For example:
 
 ```javascript
-server.pack.register(halacious, function(err){
+server.register(halacious, function(err){
     if (err) return console.log(err);
     var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
     ns.rel({ name: 'users', description: 'a collection of users' });
