@@ -7,8 +7,10 @@ var halaciousOpts = {
     mediaTypes: ['application/json', 'application/hal+json']
 };
 
-var server = new hapi.Server(8080);
-server.pack.register({ plugin: halacious, options: halaciousOpts }, function(err){
+var server = new hapi.Server();
+server.connection({ port: 8080 });
+
+server.register({ register: halacious, options: halaciousOpts }, function(err){
     if (err) console.log(err);
 });
 

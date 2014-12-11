@@ -3,8 +3,10 @@
 var hapi = require('hapi');
 var halacious = require('../');
 
-var server = new hapi.Server(8080);
-server.pack.register(halacious, function(err){
+var server = new hapi.Server();
+server.connection({ port: 8080 });
+
+server.register(halacious, function(err){
     if (err) console.log(err);
 });
 

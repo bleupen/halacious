@@ -7,9 +7,11 @@ var halaciousOpts = {
     mediaTypes: ['application/json', 'application/hal+json']
 };
 
-var server = new hapi.Server(8080);
-server.pack.register({ plugin: halacious, options: halaciousOpts }, function(err){
-    server.pack.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco'});
+var server = new hapi.Server();
+server.connection({ port: 8080 });
+
+server.register({ register: halacious, options: halaciousOpts }, function(err){
+    server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco'});
     if (err) console.log(err);
 });
 

@@ -3,10 +3,12 @@
 var hapi = require('hapi');
 var halacious = require('../');
 
-var server = new hapi.Server(8080);
-server.pack.register(halacious, function(err){
+var server = new hapi.Server();
+server.connection({ port: 8080 });
+
+server.register(halacious, function(err){
     if (err) return console.log(err);
-    var ns = server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
+    server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
 });
 
 server.route({

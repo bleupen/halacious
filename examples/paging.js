@@ -10,9 +10,11 @@ for (var i = 0; i < 100; i++) {
     users.push({ id: 1000 + i, firstName: 'Test', lastName: 'User ' + i });
 }
 
-var server = new hapi.Server(8080);
-server.pack.register({ plugin: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function(err){
-    server.pack.plugins.halacious.namespaces.add({name: 'mycompay', prefix: 'mco'})
+var server = new hapi.Server();
+server.connection({ port: 8080 });
+
+server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function(err){
+    server.plugins.halacious.namespaces.add({name: 'mycompay', prefix: 'mco'})
         .rel('user');
 
     if (err) console.log(err);
