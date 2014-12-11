@@ -2,6 +2,8 @@
 
 a better HAL processor for Hapi
 
+_Note: These docs are for Hapi version **8.0.0**. If you are using an earlier version of Hapi, please use Halacious version 2.x_
+
 ##Overview
 *Halacious* is a plugin for the HapiJS web application server that makes **HATEOASIFYING** your app ridiculously
 easy. When paired with a well-aged HAL client-side library, you will feel the warmth of loose API coupling and the feeling
