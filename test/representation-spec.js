@@ -10,8 +10,9 @@ var halacious, rf;
 describe('Representation Factory', function() {
 
     beforeEach(function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(require('..'), function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(require('..'), function (err) {
             if (err) return done(err);
             halacious = server.plugins.halacious;
             rf = new RepresentationFactory(halacious);
