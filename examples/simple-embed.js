@@ -4,9 +4,9 @@ var hapi = require('hapi');
 var halacious = require('../');
 
 var server = new hapi.Server();
-server.connection({ port: 8080 });
+server.connection({ port: 9090 });
 
-server.register(halacious, function(err){
+server.register({ register: halacious, options: { absolute: true }}, function(err){
     if (err) console.log(err);
 });
 

@@ -1158,4 +1158,151 @@ describe('Halacious Plugin', function () {
             }
         });
     });
+
+    describe('when the absolute flag is turned on', function () {
+        it('should create an absolute self link', function (done) {
+            var server = new hapi.Server();
+            server.connection({ port: 9090 });
+
+            server.route({
+                method: 'get',
+                path: '/api/people/100',
+                config: {
+                    handler: function (req, reply) {
+                        reply({ id: 100, firstName: 'Louis', lastName: 'CK' });
+                    },
+                    plugins: {
+                        hal: {
+                            absolute: true
+                        }
+                    }
+                }
+            });
+
+            server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+                if (err) return done(err);
+            });
+
+            server.inject({
+                method: 'get',
+                url: 'http://localhost:9090/api/people/100',
+                headers: { Accept: 'application/hal+json'}
+            }, function (res) {
+                var result = JSON.parse(res.payload);
+                result._links.self.should.have.property('href', 'http://localhost:9090/api/people/100');
+                done();
+            });
+        });
+
+        it('should create an absolute non-self link', function (done) {
+            var server = new hapi.Server();
+            server.connection({ port: 9090 });
+
+            server.route({
+                method: 'get',
+                path: '/api/people/100',
+                config: {
+                    handler: function (req, reply) {
+                        reply({ id: 100, firstName: 'Louis', lastName: 'CK' });
+                    },
+                    plugins: {
+                        hal: {
+                            absolute: true,
+                            links: {
+                                schedule: './schedule'
+                            }
+                        }
+                    }
+                }
+            });
+
+            server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+                if (err) return done(err);
+            });
+
+            server.inject({
+                method: 'get',
+                url: 'http://localhost:9090/api/people/100',
+                headers: { Accept: 'application/hal+json'}
+            }, function (res) {
+                var result = JSON.parse(res.payload);
+                result._links.schedule.should.have.property('href', 'http://localhost:9090/api/people/100/schedule');
+                done();
+            });
+        });
+
+        it('should embed an object with an absolute link', function (done) {
+            var server = new hapi.Server();
+            server.connection({ port: 9090 });
+
+            server.route({
+                method: 'get',
+                path: '/api/people/100',
+                config: {
+                    handler: function (req, reply) {
+                        reply({ firstName: 'Bob', lastName: 'Smith', boss: { firstName: 'Boss', lastName: 'Man'} });
+                    },
+                    plugins: {
+                        hal: {
+                            absolute: true,
+                            embedded: {
+                                'mco:boss': {
+                                    path: 'boss',
+                                    href: './boss'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+                if (err) return done(err);
+            });
+
+            server.inject({
+                method: 'get',
+                url: 'http://localhost:9090/api/people/100',
+                headers: { Accept: 'application/hal+json'}
+            }, function (res) {
+                var result = JSON.parse(res.payload);
+                result._embedded['mco:boss']._links.self.should.have.property('href', 'http://localhost:9090/api/people/100/boss');
+                done();
+            });
+        });
+
+        it('should handle created entities', function (done) {
+            var server = new hapi.Server();
+            server.connection({ port: 9090 });
+
+            server.route({
+                method: 'post',
+                path: '/api/people',
+                config: {
+                    handler: function (req, reply) {
+                        reply({ firstName: 'Bob', lastName: 'Smith' }).created('/api/people/100');
+                    },
+                    plugins: {
+                        hal: {
+                            absolute: true
+                        }
+                    }
+                }
+            });
+
+            server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+                if (err) return done(err);
+            });
+
+            server.inject({
+                method: 'post',
+                url: 'http://localhost:9090/api/people',
+                headers: { Accept: 'application/hal+json'}
+            }, function (res) {
+                var result = JSON.parse(res.payload);
+                result._links.self.should.have.property('href', 'http://localhost:9090/api/people/100');
+                done();
+            });
+        });
+    });
 });
