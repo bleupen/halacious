@@ -358,6 +358,8 @@ or
         - `links`   
         - `embedded` (recursively evaluated)
         - `prepare(rep, next)`
+    - `absolute` - a boolean true/false. if true, hrefs for this representation will include protocal, server, and port.
+        Default: false
 
 ## Namespaces and Rels
 So far, we have not done a real good job in our examples defining our link relations. Unless registered with the IANA, 
@@ -531,3 +533,4 @@ to true will help catch typos during development. Default: `false`
 - `mediaTypes` - an array of media types that will trigger the hal processor to modify the response (e.g. `['application/json', 
 'application/hal+json']`). the media types are checked in order. if any match the accept header parameters, then the 
 response will be halified and the media type of the response will be set to the first winner. Default: `['application/hal+json']`
+- `absolute` - a boolean true/false. if true, all hrefs will include the protocol, server, and port. Default: false
