@@ -1,6 +1,6 @@
 {
   "name": "halacious",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "A better HAL processor for Hapi",
   "main": "index.js",
   "scripts": {
