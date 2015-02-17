@@ -9,7 +9,7 @@ _Note: These docs are for Hapi version **8.0.0**. If you are using an earlier ve
 easy. When paired with a well-aged HAL client-side library, you will feel the warmth of loose API coupling and the feeling
 of moral superiorty as you rid your SPA of hard-coded api links. 
 
-Halacious removes the boilerplate standing between between you and a Restful application, allowing you to focus on your app's
+Halacious removes the boilerplate standing between you and a Restful application, allowing you to focus on your app's
 secret sauce. Halacious embraces Hapi's configuration-centric approach to application scaffolding. Most common tasks can 
 be accomplished without writing any code at all.
  
