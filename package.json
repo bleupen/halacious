@@ -1,6 +1,6 @@
 {
   "name": "halacious",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "A better HAL processor for Hapi",
   "main": "index.js",
   "scripts": {
@@ -23,11 +23,11 @@
   },
   "homepage": "https://github.com/bleupen/halacious",
   "devDependencies": {
-    "chai": "^1.9.1",
+    "chai": "^2.0.0",
     "hapi": "^8.0.0",
     "mocha": "^2.1.0",
     "sinon": "^1.10.2",
-    "sinon-chai": "^2.5.0"
+    "sinon-chai": "^2.7.0"
   },
   "dependencies": {
     "hoek": "^2.3.0",
