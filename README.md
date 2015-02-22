@@ -348,10 +348,10 @@ or
     Query parameters that are not included in the template, such as runtime tokens, will be excluded from the self href.
     - `links` - An object whose keys are rel names and whose values are href strings or link objects that contain
      at least an `href` property. Hrefs may be absolute or relative to the representation's self link. Hrefs may also contain
-     `{expression}` template expressions, which are resolved against the wrapped entity. 
+     `{expression}` template expressions, which are resolved against the wrapped entity.
     - `embedded` An object whose keys are rel names and whose values are configuration objects with:
         - `path` - a path expression to evaluate against the wrapped entity to derive the object to embed. 
-        - `href` - a String href or link object that will be used to define the entity's self relation. Like links,
+        - `href` - a Function, String or link object that will be used to define the entity's self relation. Like links,
         embedded href's may also be templated. Unlike links, embedded href templates have access to two state variables:
             - `self` - the parent entity 
             - `item` - the child entity
