@@ -6,9 +6,11 @@ var plugin = require('../lib/plugin');
 var hapi = require('hapi');
 var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
+var chaiString = require('chai-string');
 var halacious = require('../');
 var _ = require('lodash');
 chai.use(sinonChai);
+chai.use(chaiString);
 
 var hapiPlugin = {
     expose: sinon.spy()
@@ -958,6 +960,46 @@ describe('Halacious Plugin', function () {
                     firstName: 'Bob',
                     lastName: 'Smith'
                 });
+                done();
+            } catch (err) {
+                done(err);
+            }
+        });
+    });
+
+    it('use of location header for absolute link generation should not break url search', function (done) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        var result;
+
+        server.route({
+            method: 'post',
+            path: '/people',
+            config: {
+                handler: function (req, reply) {
+                    reply({ id: 100, firstName: 'Bob', lastName: 'Smith' }).created('/people/100?donotbreakthis=true');
+                }
+            }
+        });
+
+        server.register({
+            register:halacious,
+            options: {
+                absolute: true
+            }
+        }, function (err) {
+            if (err) return done(err);
+        });
+
+        server.inject({
+            method: 'post',
+            url: '/people',
+            headers: { Accept: 'application/hal+json' }
+        }, function (res) {
+            try {
+                res.statusCode.should.equal(201);
+                result = JSON.parse(res.payload);
+                result.should.have.a.property('_links').that.has.a.property('self').that.has.a.property('href').that.endsWith('/people/100?donotbreakthis=true');
                 done();
             } catch (err) {
                 done(err);
