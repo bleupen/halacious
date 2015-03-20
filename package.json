@@ -23,12 +23,17 @@
   },
   "homepage": "https://github.com/bleupen/halacious",
   "devDependencies": {
-    "chai": "^2.0.0",
-    "chai-string": "^1.1.1",
-    "hapi": "^8.0.0",
-    "mocha": "^2.1.0",
-    "sinon": "^1.10.2",
-    "sinon-chai": "^2.7.0"
+    "chai": "^2.1.1",
+    "gulp": "^3.8.11",
+    "gulp-bump": "^0.2.2",
+    "gulp-filter": "^2.0.2",
+    "gulp-git": "^1.1.0",
+    "gulp-istanbul": "^0.6.0",
+    "gulp-jshint": "^1.9.2",
+    "gulp-mocha": "^2.0.0",
+    "gulp-tag-version": "^1.2.1",
+    "jshint-stylish": "^1.0.1",
+    "mocha": "^2.2.1"
   },
   "dependencies": {
     "hoek": "^2.3.0",
