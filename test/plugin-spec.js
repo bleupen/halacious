@@ -967,7 +967,7 @@ describe('Halacious Plugin', function () {
         });
     });
 
-    it.only('use of location header for absolute link generation should not break url search', function (done) {
+    it('use of location header for absolute link generation should not break url search', function (done) {
         var server = new hapi.Server();
         server.connection({ port: 9090 });
         var result;
