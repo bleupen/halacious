@@ -1,30 +1,30 @@
-#halacious
+# halacious
 
 a better HAL processor for Hapi
 
 _Note: These docs are for Hapi version **8.0.0**. If you are using an earlier version of Hapi, please use Halacious version 2.x_
 
-##Overview
+## Overview
 *Halacious* is a plugin for the HapiJS web application server that makes **HATEOASIFYING** your app ridiculously
 easy. When paired with a well-aged HAL client-side library, you will feel the warmth of loose API coupling and the feeling
-of moral superiorty as you rid your SPA of hard-coded api links. 
+of moral superiorty as you rid your SPA of hard-coded api links.
 
 Halacious removes the boilerplate standing between you and a Restful application, allowing you to focus on your app's
-secret sauce. Halacious embraces Hapi's configuration-centric approach to application scaffolding. Most common tasks can 
+secret sauce. Halacious embraces Hapi's configuration-centric approach to application scaffolding. Most common tasks can
 be accomplished without writing any code at all.
- 
-##Features
+
+## Features
 - Dead-simple namespace/rel registration system that encourages you to document your API as you go
 - Automatic api root REST endpoint generation that instantly gives you links to all top-level API endpoints
 - Automatic rel documentation site generator so that your fully resolved rel names actually, you know, point somewhere.
 - Automatic creation of curie links
-- Support for relative and templated link hrefs. 
+- Support for relative and templated link hrefs.
 - Auto wrapping of http response entities into HAL representations
 - Support for custom object json serialization
 - Support for programmatic configuration of HAL entities at the route or entity level
 - Bunches of unit tests
 
-##Getting Started
+## Getting Started
 Start by npm installing the halacious library into your hapi project folder:
 ```
 npm install halacious --save
@@ -75,8 +75,8 @@ See the response
     "message": "Hello, world"
 }
 ```
-##Linking
-Links may be declared directly within the route config. 
+## Linking
+Links may be declared directly within the route config.
 ```javascript
 server.route({
     method: 'get',
@@ -116,7 +116,7 @@ will produce:
 }
 ```
 
-##Embedding
+## Embedding
 HAL allows you to conserve bandwidth by optionally embedding link payloads in the original request. Halacious will
 automatically convert nested objects into embedded HAL representations (if you ask nicely).
 
@@ -179,7 +179,7 @@ You may find the need to take the wheel on occasion and directly configure outbo
 some links may be conditional on potentially asynchronous criteria. Fortunately, Halacious provides two ways to do this:
 
 1. By providing a `prepare()` function on the route's hal descriptor (or by assigning the function directly to the hal property)
-2. By implementing a `toHal()` method directly on a wrapped entity. 
+2. By implementing a `toHal()` method directly on a wrapped entity.
 
 In either case, the method signature is the same: `fn(rep, callback)` where
 - `rep` - a representation object with the following properties and functions:
@@ -207,7 +207,7 @@ In either case, the method signature is the same: `fn(rep, callback)` where
 is complete. Most of the time this function should be called with no arguments. Only pass arguments if there has been
 an error or if a completely new representation has been created with `rep.factory.create()`.
 
-#### Example 1: A `prepare()` function declared in the route descriptor. 
+#### Example 1: A `prepare()` function declared in the route descriptor.
 ```javascript
 server.route({
     method: 'get',
@@ -339,7 +339,7 @@ The `config.plugins.hal` route configuration object takes the following format:
 or
 - An object with the following properties:
     - `api` - an optional top level api rel name to assign to this route. Setting a value will cause this route to be included
-    in the root api resource's _links collection. 
+    in the root api resource's _links collection.
     - `prepare(rep, next)` - an optional prepare function
     - `ignore` - A String or array of strings containing the names of properties to remove from the output. Can be used
     to remove reduntant information from the response
@@ -350,21 +350,21 @@ or
      at least an `href` property. Hrefs may be absolute or relative to the representation's self link. Hrefs may also contain
      `{expression}` template expressions, which are resolved against the wrapped entity.
     - `embedded` An object whose keys are rel names and whose values are configuration objects with:
-        - `path` - a path expression to evaluate against the wrapped entity to derive the object to embed. 
+        - `path` - a path expression to evaluate against the wrapped entity to derive the object to embed.
         - `href` - a Function, String or link object that will be used to define the entity's self relation. Like links,
         embedded href's may also be templated. Unlike links, embedded href templates have access to two state variables:
-            - `self` - the parent entity 
+            - `self` - the parent entity
             - `item` - the child entity
-        - `links`   
+        - `links`
         - `embedded` (recursively evaluated)
         - `prepare(rep, next)`
     - `absolute` - a boolean true/false. if true, hrefs for this representation will include protocal, server, and port.
         Default: false
 
 ## Namespaces and Rels
-So far, we have not done a real good job in our examples defining our link relations. Unless registered with the IANA, 
-link relations should really be unique URLs that resolve to documentation regarding their semantics. Halacious will 
-happily let you be lazy but its much better if we do things the Right Way. 
+So far, we have not done a real good job in our examples defining our link relations. Unless registered with the IANA,
+link relations should really be unique URLs that resolve to documentation regarding their semantics. Halacious will
+happily let you be lazy but its much better if we do things the Right Way.
 
 ### Manually creating a namespace
 Halacious exposes its api to your Hapi server so that you may configure it at runtime like so:
@@ -379,7 +379,7 @@ Halacious exposes its api to your Hapi server so that you may configure it at ru
      ns.rel({ name: 'user', description: 'a single user' });
      ns.rel({ name: 'boss', description: 'a users boss' });
  });
- 
+
  server.route({
      method: 'get',
      path: '/users/{userId}',
@@ -402,10 +402,10 @@ Halacious exposes its api to your Hapi server so that you may configure it at ru
  Now, when we access the server we see a new type of link in the `_links` collection, `curies`. The curies link provides a mechanism
  to use shorthand rel names while preserving their uniqueness. Without the curie, the 'mco:boss' rel key would be expanded
  to read `/rels/mycompany/boss`
- 
+
  ```
  curl -H 'Accept: application/hal+json' http://localhost:8080/users/100
- 
+
  {
      "_links": {
          "self": {
@@ -426,7 +426,7 @@ Halacious exposes its api to your Hapi server so that you may configure it at ru
      "name": "User 100"
  }
  ```
- 
+
 ### Creating a namespace from a folder of documentated rels
 In our examples folder, we have created a folder `rels/mycompany` containing markdown documents for all of the rels in our
 company's namespace. We can suck all these into the system in one fell swoop:
@@ -440,11 +440,11 @@ server.register(halacious, function(err){
     server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
 });
 ```
-Ideally these documents should provide your api consumer enough semantic information to navigate your api. 
+Ideally these documents should provide your api consumer enough semantic information to navigate your api.
 
-## Rels documentation 
-Halacious includes an (extremely) barebones namespace / rel navigator for users to browse your documentation. 
-The server binds to the `/rels` path on your server by default. 
+## Rels documentation
+Halacious includes an (extremely) barebones namespace / rel navigator for users to browse your documentation.
+The server binds to the `/rels` path on your server by default.
 
 ## Automatic /api root
 Discoverability is a key tenant of any hypermedia system. HAL requires that only the root API url be known to clients of your
@@ -529,8 +529,8 @@ to true will help catch typos during development. Default: `false`
 - `autoApi` - setting this to `true` will automatically create a root api handler to seed your client application. Default: `true`
 - `apiPath` - the route path to the api root. Default: `/api`
 - `apiAuth` - the hapi authentication setting to use for the api route. Default: `false`
-- `apiServerLabel` - when set, Halacious will select for a specific server to route the api root. 
-- `mediaTypes` - an array of media types that will trigger the hal processor to modify the response (e.g. `['application/json', 
-'application/hal+json']`). the media types are checked in order. if any match the accept header parameters, then the 
+- `apiServerLabel` - when set, Halacious will select for a specific server to route the api root.
+- `mediaTypes` - an array of media types that will trigger the hal processor to modify the response (e.g. `['application/json',
+'application/hal+json']`). the media types are checked in order. if any match the accept header parameters, then the
 response will be halified and the media type of the response will be set to the first winner. Default: `['application/hal+json']`
 - `absolute` - a boolean true/false. if true, all hrefs will include the protocol, server, and port. Default: false
