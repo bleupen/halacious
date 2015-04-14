@@ -31,26 +31,26 @@ server.route({
                 employees: [{ id: 100, name: 'Tom' }, { id: 101, name: 'Dick' }, { id: 102, name: 'Harry' }]
             });
         },
-        plugins: {
-            hal: {
-                prepare: function (rep, next) {
-                    var employees = rep.entity.employees;
+    plugins: {
+        hal: {
+            prepare: function (rep, next) {
+                var employees = rep.entity.employees;
 
-                    // adding multiple links with the same rel will create an array of links in the payload
+                // adding multiple links with the same rel will create an array of links in the payload
 
-                    // link by route id
-                    rep.link('mco:employee', rep.route('employee.lookup', employees[0]));
+                // link by route id
+                rep.link('mco:employee', rep.route('employee.lookup', employees[0]));
 
-                    // or by relative path
-                    rep.link('mco:employee', '../../employees/'+ employees[1].id);
+                // or by relative path
+                rep.link('mco:employee', '../../employees/'+ employees[1].id);
 
-                    // or by absolute path
-                    rep.link('mco:employee', '/employees/'+ employees[2].id);
+                // or by absolute path
+                rep.link('mco:employee', '/employees/'+ employees[2].id);
 
-                    next();
-                }
+                next();
             }
         }
+    }
     }
 });
 

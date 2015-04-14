@@ -6,7 +6,7 @@ var halacious = require('../');
 var server = new hapi.Server();
 server.connection({ port: 8080 });
 
-server.register(halacious, function(err){
+server.register({ register: halacious, options: { absolute: true }}, function(err){
     if (err) return console.log(err);
     var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
     ns.rel({ name: 'users', description: 'a collection of users' });
