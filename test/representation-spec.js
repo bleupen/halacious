@@ -131,6 +131,12 @@ describe('Representation Factory', function() {
         rep._links['mco:boss'].should.have.property('href', '/people/1234');
     });
 
+    it('should not break when linking an empty array', function () {
+        var rep = rf.create({ firstName: 'Bob' }, '/people');
+        rep.link('employees', []);
+        rep._links.should.have.property('employees').that.has.length(0);
+    });
+
     it('should resolve relative paths', function () {
         var entity = { firstName: 'Bob', lastName: 'Smith' };
         var rep = rf.create(entity, '/people');
