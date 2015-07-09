@@ -185,6 +185,31 @@ describe('Representation Factory', function() {
         });
     });
 
+    it('should embed an empty array', function () {
+        halacious.namespaces
+            .add({ name: 'mycompany', prefix: 'mco' })
+            .rel({ name: 'boss' });
+
+        var rep = rf.create({ firstName: 'Bob', lastName: 'Smith' }, '/people/me');
+        var boss = rep.embed('mco:boss', './boss', []);
+
+        var json = JSON.stringify(rep);
+        var obj = JSON.parse(json);
+        obj.should.deep.equal({
+            _links: {
+                self: { href: '/people/me' },
+                curies: [
+                    { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
+                ]
+            },
+            firstName: 'Bob',
+            lastName: 'Smith',
+            _embedded: {
+                'mco:boss': []
+            }
+        });
+    });
+
     it('should use top level curie link', function () {
         halacious.namespaces
             .add({ name: 'mycompany', prefix: 'mco' })
