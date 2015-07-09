@@ -1531,4 +1531,57 @@ describe('Halacious Plugin', function () {
             done();
         });
     });
+
+    it('should embed an empty representation', function (done) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people',
+            config: {
+                id: 'person',
+                handler: function (req, reply) {
+                    reply({ employees: [] });
+                },
+                plugins: {
+                    hal: {
+                        api: 'mco:person',
+                        embedded: {
+                            'mco:person': {
+                                path: 'employees',
+                                href: '../{item.id}'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        server.register({ register: halacious, options: { absolute: true }}, function (err) {
+            if (err) return done(err);
+
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'person' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people'
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
+                    self: { href: server.info.uri + '/people'}
+                },
+                _embedded: {
+                    'mco:person': []
+                }
+            });
+            done();
+        });
+    });
 });
