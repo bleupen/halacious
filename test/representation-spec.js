@@ -47,7 +47,7 @@ describe('Representation Factory', function() {
         rep._links['mco:boss'][1].should.have.property('href', '/people/101');
         rep._links['mco:boss'][2].should.have.property('href', '/people/102');
     });
-    
+
     it('should create a single-element array of links', function () {
         var entity = {};
         var rep = rf.create(entity, '/people');
@@ -135,6 +135,36 @@ describe('Representation Factory', function() {
         var rep = rf.create({ firstName: 'Bob' }, '/people');
         rep.link('employees', []);
         rep._links.should.have.property('employees').that.has.length(0);
+    });
+
+    it('should not break when embedding an empty array', function () {
+        var rep = rf.create({ firstName: 'Bob' }, '/people');
+        rep.embed('employees', []);
+        rep._embedded.should.have.property('employees').that.has.length(0);
+    });
+
+    it('should embed an array of embeddable objects', function () {
+        var rep = rf.create({ firstName: 'Bob' }, '/people');
+        rep.embed('employees', [
+            {self: './1', entity: {name: 'John'}},
+            {self: './2', entity: {name: 'Marian'}}
+        ]);
+
+        rep._embedded.should.have.property('employees').that.has.length(2);
+        var employees = rep._embedded.employees;
+        employees[0].should.have.property('self', '/people/1');
+        employees[0].should.have.property('entity').eql({name: 'John'});
+        employees[1].should.have.property('self', '/people/2');
+        employees[1].should.have.property('entity').eql({name: 'Marian'});
+    });
+
+    it('should skip embeddable objects that are incorrectly defined', function () {
+        var rep = rf.create({ firstName: 'Bob' }, '/people');
+        rep.embed('employees', [
+            {x: './1', entity: 'John'},
+            {self: './2', name: 'Marian'}
+        ]);
+        rep._embedded.should.have.property('employees').that.has.length(0);
     });
 
     it('should resolve relative paths', function () {

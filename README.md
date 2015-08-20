@@ -207,6 +207,10 @@ In either case, the method signature is the same: `fn(rep, callback)` where
 is complete. Most of the time this function should be called with no arguments. Only pass arguments if there has been
 an error or if a completely new representation has been created with `rep.factory.create()`.
 
+Both `rep.link` and `rep.embed` support arrays of linked resources, allowing empty arrays to be represented when no links with that rel are present.
+-  `rep.link(relName, hrefs)` - add the links in `hrefArray` as relName
+-  `rep.embed(relName, embeddableEntities)` - where `embeddableEntities` is an array of objects with `self` and `entity` properties, embed the entity with the self href as rel
+
 #### Example 1: A `prepare()` function declared in the route descriptor.
 ```javascript
 server.route({
