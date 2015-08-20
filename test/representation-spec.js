@@ -146,7 +146,22 @@ describe('Representation Factory', function() {
     it('should embed an array of embeddable objects', function () {
         var rep = rf.create({ firstName: 'Bob' }, '/people');
         rep.embed('employees', [
-            {self: './1', name: 'John'},
+            {self: './1', entity: {name: 'John'}},
+            {self: './2', entity: {name: 'Marian'}}
+        ]);
+
+        rep._embedded.should.have.property('employees').that.has.length(2);
+        var employees = rep._embedded.employees;
+        employees[0].should.have.property('self', '/people/1');
+        employees[0].should.have.property('entity').eql({name: 'John'});
+        employees[1].should.have.property('self', '/people/2');
+        employees[1].should.have.property('entity').eql({name: 'Marian'});
+    });
+
+    it('should skip embeddable objects that are incorrectly defined', function () {
+        var rep = rf.create({ firstName: 'Bob' }, '/people');
+        rep.embed('employees', [
+            {x: './1', entity: 'John'},
             {self: './2', name: 'Marian'}
         ]);
         rep._embedded.should.have.property('employees').that.has.length(0);
