@@ -10,6 +10,10 @@ var halaciousOpts = {
 var server = new hapi.Server();
 server.connection({ port: 8080 });
 
+server.register(require('vision'), function (err) {
+    if (err) return console.log(err);
+});
+
 server.register({ register: halacious, options: halaciousOpts }, function(err){
     if (err) console.log(err);
 });

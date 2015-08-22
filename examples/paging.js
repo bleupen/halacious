@@ -13,6 +13,10 @@ for (var i = 0; i < 100; i++) {
 var server = new hapi.Server();
 server.connection({ port: 8080 });
 
+server.register(require('vision'), function (err) {
+    if (err) return console.log(err);
+});
+
 server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function(err){
     server.plugins.halacious.namespaces.add({name: 'mycompay', prefix: 'mco'})
         .rel('user');

@@ -8,6 +8,7 @@ var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
 var chaiString = require('chai-string');
 var halacious = require('../');
+var vision = require('vision');
 var _ = require('lodash');
 chai.use(sinonChai);
 chai.use(chaiString);
@@ -17,14 +18,6 @@ var hapiPlugin = {
 };
 
 describe('Halacious Plugin', function () {
-    beforeEach(function (done) {
-        var server = new hapi.Server();
-        server.connection({ port: 9090 });
-        server.register(halacious, function (err) {
-            server.plugins.halacious.namespaces.remove();
-            done();
-        });
-    });
 
     it('should have a registration function', function () {
         plugin.should.have.property('register');
@@ -230,11 +223,20 @@ describe('Halacious Plugin', function () {
     });
 
     it('should route rel documentation', function (done) {
-        var server = new hapi.Server();
-        server.connection({ port: 9090 });
+        var server = new hapi.Server({ debug: { log: ['error']}});
+        server.connection();
+        server.register(vision, function (err) {
+            if (err) done(err);
+        });
+
         server.register(halacious, function (err) {
             if (err) return done(err);
-            var ns = server.plugins.halacious.namespaces.add({dir: __dirname + '/rels/mycompany', prefix: 'mco'});
+            server.plugins.halacious.namespaces.add({dir: __dirname + '/rels/mycompany', prefix: 'mco'});
+        });
+
+        server.start(function(err) {
+            if (err) return done(err);
+
             server.inject({
                 method: 'get',
                 url: '/rels/mycompany/boss'
@@ -243,7 +245,7 @@ describe('Halacious Plugin', function () {
                 res.payload.should.not.be.empty;
                 done();
             });
-        });
+        })
     });
 
     it('should resolve a named route path', function (done) {
@@ -1103,7 +1105,7 @@ describe('Halacious Plugin', function () {
             result = JSON.parse(res.payload);
             result.should.deep.equal({
                 _links: {
-                    self: { href: '/people?q=funny&start=1' }
+                        self: { href: '/people?q=funny&start=1' }
                 },
                 _embedded: {
                     items: [
