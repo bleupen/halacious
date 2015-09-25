@@ -1,1 +1,1 @@
-## a single user
+## a collection of users

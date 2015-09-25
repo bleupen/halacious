@@ -1,6 +1,6 @@
 {
   "name": "halacious",
-  "version": "2.0.1",
+  "version": "3.3.1",
   "description": "A better HAL processor for Hapi",
   "main": "index.js",
   "scripts": {
@@ -23,21 +23,29 @@
   },
   "homepage": "https://github.com/bleupen/halacious",
   "devDependencies": {
-    "hapi": "^6.x.x",
-    "mocha": "^1.20.1",
-    "chai": "^1.9.1",
-    "sinon": "^1.10.2",
-    "sinon-chai": "^2.5.0"
+    "chai": "^2.1.1",
+    "gulp": "^3.8.11",
+    "gulp-bump": "^0.2.2",
+    "gulp-filter": "^2.0.2",
+    "gulp-git": "^1.1.0",
+    "gulp-istanbul": "^0.6.0",
+    "gulp-jshint": "^1.9.2",
+    "gulp-mocha": "^2.0.0",
+    "gulp-tag-version": "^1.2.1",
+    "hapi": "^10.0.0",
+    "jshint-stylish": "^1.0.1",
+    "mocha": "^2.2.1",
+    "vision": "^3.0.0"
   },
   "dependencies": {
+    "URIjs": "^1.13.2",
+    "async": "^0.9.0",
     "hoek": "^2.3.0",
-    "joi": "^4.5.0",
-    "lodash": "^2.4.1",
+    "joi": "^5.0.0",
+    "lodash": "^3.10.1",
+    "negotiator": "^0.4.5",
     "swig": "^1.3.2",
     "swig-extras": "0.0.1",
-    "url-template": "^2.0.4",
-    "async": "^0.9.0",
-    "negotiator": "^0.4.5",
-    "URIjs": "^1.13.2"
+    "url-template": "^2.0.4"
   }
 }

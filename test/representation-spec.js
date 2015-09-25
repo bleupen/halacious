@@ -10,8 +10,9 @@ var halacious, rf;
 describe('Representation Factory', function() {
 
     beforeEach(function (done) {
-        var server = new hapi.Server(9090);
-        server.pack.register(require('..'), function (err) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        server.register(require('..'), function (err) {
             if (err) return done(err);
             halacious = server.plugins.halacious;
             rf = new RepresentationFactory(halacious);
@@ -130,11 +131,18 @@ describe('Representation Factory', function() {
         rep._links['mco:boss'].should.have.property('href', '/people/1234');
     });
 
+    it('should not break when linking an empty array', function () {
+        var rep = rf.create({ firstName: 'Bob' }, '/people');
+        rep.link('employees', []);
+        rep._links.should.have.property('employees').that.has.length(0);
+    });
+
     it('should resolve relative paths', function () {
         var entity = { firstName: 'Bob', lastName: 'Smith' };
         var rep = rf.create(entity, '/people');
-        var href = rep.resolve('./1234');
-        href.should.equal('/people/1234');
+        rep.resolve('./1234').should.equal('/people/1234');
+        rep.resolve('../1234').should.equal('/1234');
+        rep.resolve('/companies/100').should.equal('/companies/100');
     });
 
     it('should include a curie link', function () {
@@ -173,6 +181,31 @@ describe('Representation Factory', function() {
                     firstName: 'Boss',
                     lastName: 'Man'
                 }
+            }
+        });
+    });
+
+    it('should embed an empty array', function () {
+        halacious.namespaces
+            .add({ name: 'mycompany', prefix: 'mco' })
+            .rel({ name: 'boss' });
+
+        var rep = rf.create({ firstName: 'Bob', lastName: 'Smith' }, '/people/me');
+        var boss = rep.embed('mco:boss', './boss', []);
+
+        var json = JSON.stringify(rep);
+        var obj = JSON.parse(json);
+        obj.should.deep.equal({
+            _links: {
+                self: { href: '/people/me' },
+                curies: [
+                    { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
+                ]
+            },
+            firstName: 'Bob',
+            lastName: 'Smith',
+            _embedded: {
+                'mco:boss': []
             }
         });
     });

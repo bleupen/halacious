@@ -3,8 +3,14 @@
 var hapi = require('hapi');
 var halacious = require('../');
 
-var server = new hapi.Server(8080);
-server.pack.register(halacious, function(err){
+var server = new hapi.Server();
+server.connection({ port: 8080 });
+
+server.register(require('vision'), function (err) {
+    if (err) return console.log(err);
+});
+
+server.register(halacious, function(err){
     if (err) return console.log(err);
     var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
     ns.rel({ name: 'users', description: 'a collection of users' });

@@ -2,7 +2,8 @@
 
 var hapi = require('hapi');
 
-var server = new hapi.Server(9090);
+var server = new hapi.Server();
+server.connection({ port: 9090 });
 
 server.route({
     method: 'get',
@@ -59,7 +60,7 @@ server.route({
         }
     }
 });
-server.pack.register(require('../'), function (err) {
+server.register(require('../'), function (err) {
     if (err) throw err;
     server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco', description: 'My companys rels'});
     server.start(function (err) {

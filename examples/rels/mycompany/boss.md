@@ -1,1 +1,1 @@
-## A collection of users
+## A boss user

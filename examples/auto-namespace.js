@@ -2,11 +2,16 @@
 
 var hapi = require('hapi');
 var halacious = require('../');
+var server = new hapi.Server();
+server.connection({ port: 8080 });
 
-var server = new hapi.Server(8080);
-server.pack.register(halacious, function(err){
+server.register(require('vision'), function (err) {
     if (err) return console.log(err);
-    var ns = server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
+});
+
+server.register(halacious, function(err){
+    if (err) return console.log(err);
+    server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
 });
 
 server.route({

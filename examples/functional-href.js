@@ -14,20 +14,25 @@ server.register(halacious, function(err){
     if (err) console.log(err);
 });
 
-function User(id, firstName, lastName, googlePlusId) {
-    this.id = id;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.googlePlusId = googlePlusId;
-}
-
-User.prototype.toHal = function(rep, next) {
-    if (this.googlePlusId) {
-        rep.link('home', 'http://plus.google.com/' + this.googlePlusId);
-        rep.ignore('googlePlusId');
+server.route({
+    method: 'get',
+    path: '/users/{id}',
+    config: {
+        id: 'user',
+        handler: function (req, reply) {
+            reply({ id: req.params.id, bossId: 101 });
+        },
+        plugins: {
+            hal: {
+                links: {
+                    boss: function(rep, entity) {
+                        return rep.route('user', { id: entity.bossId });
+                    }
+                }
+            }
+        }
     }
-    next();
-};
+});
 
 server.route({
     method: 'get',
@@ -39,8 +44,8 @@ server.route({
                 count: 2,
                 limit: 2,
                 items: [
-                    new User(100, 'Brad', 'Leupen', '107835557095464780852'),
-                    new User(101, 'Mark', 'Zuckerberg')
+                    { id: 100, firstName: 'Brad', lastName: 'Leupen'},
+                    { id: 101, firstName: 'Barack', lastName: 'Obama'}
                 ]
             });
         },
@@ -49,7 +54,9 @@ server.route({
                 embedded: {
                     item: {
                         path: 'items',
-                        href: './{item.id}'
+                        href: function(rep, ctx) {
+                            return rep.route('user', { id: ctx.item.id });
+                        }
                     }
                 }
             }
