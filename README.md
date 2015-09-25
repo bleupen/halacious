@@ -2,8 +2,6 @@
 
 a better HAL processor for Hapi
 
-_Note: These docs are for Hapi version **8.0.0**. If you are using an earlier version of Hapi, please use Halacious version 2.x_
-
 ## Overview
 *Halacious* is a plugin for the HapiJS web application server that makes **HATEOASIFYING** your app ridiculously
 easy. When paired with a well-aged HAL client-side library, you will feel the warmth of loose API coupling and the feeling
@@ -445,6 +443,8 @@ Ideally these documents should provide your api consumer enough semantic informa
 ## Rels documentation
 Halacious includes an (extremely) barebones namespace / rel navigator for users to browse your documentation.
 The server binds to the `/rels` path on your server by default.
+
+_Note: Hapi 9 / 10 users must install and configure the vision views plugin to enable this feature.
 
 ## Automatic /api root
 Discoverability is a key tenant of any hypermedia system. HAL requires that only the root API url be known to clients of your
