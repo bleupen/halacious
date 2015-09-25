@@ -534,3 +534,6 @@ to true will help catch typos during development. Default: `false`
 'application/hal+json']`). the media types are checked in order. if any match the accept header parameters, then the
 response will be halified and the media type of the response will be set to the first winner. Default: `['application/hal+json']`
 - `absolute` - a boolean true/false. if true, all hrefs will include the protocol, server, and port. Default: false
+- `hostname` - a string hostname for all absolute link urls
+- `port` - an integer port for all absolute link urls
+- `protocol` - a string protocol for all absolute link urls
