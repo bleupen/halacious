@@ -1736,12 +1736,13 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { absolute: true, hostname: 'www.cloud.com' }}, function (err) {
+        server.register({ register: halacious, options: { absolute: true, host: 'www.cloud.com' }}, function (err) {
             if (err) return done(err);
         });
 
         server.inject({
             method: 'get',
+            headers: { host: null },
             url: '/people'
         }, function (res) {
             res.statusCode.should.equal(200);
@@ -1777,7 +1778,6 @@ describe('Halacious Plugin', function () {
 
         server.plugins.halacious.urlBuilder(function (request, path, search) {
             return url.format({
-                host: request.headers.host,
                 hostname: 'www.myapp.com',
                 port: 12345,
                 pathname: path,
