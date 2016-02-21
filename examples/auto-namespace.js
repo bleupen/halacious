@@ -2,7 +2,8 @@
 
 var hapi = require('hapi');
 var halacious = require('../');
-var server = new hapi.Server();
+var server = new hapi.Server({ debug: { request: ['error']}});
+
 server.connection({ port: 8080 });
 
 server.register(require('vision'), function (err) {
