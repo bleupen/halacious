@@ -272,6 +272,63 @@ describe('Halacious Plugin', function () {
         });
     });
 
+    it('should encode parameter values when resolving a named route', function (done) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+
+        server.route({
+            method: 'get',
+            path: '/deez/treez/{foo}/{bar}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ foo: req.params.foo, bar: req.params.bar });
+                },
+                plugins: {
+                    hal: {
+                        name: 'deez-treez'
+                    }
+                }
+            }
+        });
+
+        server.register(halacious, function (err) {
+            if (err) return done(err);
+            var path = server.plugins.halacious.route('deez-treez', { foo: 'are/fire', bar: 'proof' });
+            path.should.not.equal('/deez/treez/are/fire/proof');
+            path.should.equal('/deez/treez/are%2Ffire/proof');
+            done();
+        });
+    });
+
+    it('should passively ignore child objects in parameter hash when resolving a named route', function (done) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+
+        server.route({
+            method: 'get',
+            path: '/deez/treez/{foo}/{bar}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ foo: req.params.foo, bar: req.params.bar });
+                },
+                plugins: {
+                    hal: {
+                        name: 'deez-treez'
+                    }
+                }
+            }
+        });
+
+        server.register(halacious, function (err) {
+            if (err) return done(err);
+            server.plugins.halacious.route.bind(halacious, 'deez-treez', { foo: 'are', bar: 'fire/proof', things: { should: 'not break' } }).should.not.throw;
+            var path = server.plugins.halacious.route('deez-treez', { foo: 'are', bar: 'fire/proof', things: { should: 'not break' } });
+            path.should.not.equal('/deez/treez/are/fire/proof');
+            path.should.equal('/deez/treez/are/fire%2Fproof');
+            done();
+        });
+    });
+
     it('should convert a json entity into a HAL representation with self and a simple link', function (done) {
         var server = new hapi.Server();
         server.connection({ port: 9090 });
