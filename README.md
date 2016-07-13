@@ -526,6 +526,7 @@ curl -H 'Accept: application/hal+json' http://localhost:8080/api/
 to true will help catch typos during development. Default: `false`
 - `relsPath` - the route path to the rels documentation root. Default: `/rels`
 - `relsAuth` - the hapi authentication setting to use for the documentation routes. Default: `false`
+- `relsTemplate` - a boolean true/false. if true, rels documentation uses the default template. Default: `true`
 - `autoApi` - setting this to `true` will automatically create a root api handler to seed your client application. Default: `true`
 - `apiPath` - the route path to the api root. Default: `/api`
 - `apiAuth` - the hapi authentication setting to use for the api route. Default: `false`
@@ -538,3 +539,4 @@ response will be halified and the media type of the response will be set to the 
 - `hostname` - a string hostname for all absolute link urls (only used if host is blank)
 - `port` - an integer port for all absolute link urls
 - `protocol` - a string protocol for all absolute link urls
+- `marked` - a object of options to customize **marked**. Default: `{}`
