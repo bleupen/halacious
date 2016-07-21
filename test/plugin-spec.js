@@ -340,7 +340,7 @@ describe('Halacious Plugin', function () {
         });
     });
 
-    it('should handle optional Hapi route parameters in a named route', function (done) {
+    it('should handle presence of optional Hapi route parameters in a named route', function (done) {
         var server = new hapi.Server();
         server.connection({ port: 9090 });
 
