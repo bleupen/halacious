@@ -82,10 +82,13 @@ describe('Halacious Plugin', function () {
         server.connection({ port: 9090 });
         server.register(halacious, function () {
             var plugin = server.plugins.halacious;
-            plugin.namespaces.add.bind(plugin.namespaces, { name: 'mycompany', prefirx: 'mco'}).should.throw('prefirx is not allowed');
+            plugin.namespaces.add.bind(plugin.namespaces, {
+                name: 'mycompany',
+                prefirx: 'mco'
+            }).should.throw('prefirx is not allowed');
         });
     });
-    
+
     it('should add a rel to a namespace', function (done) {
         var server = new hapi.Server();
         server.connection({ port: 9090 });
@@ -113,7 +116,7 @@ describe('Halacious Plugin', function () {
         });
     });
 
-    it('should remove a namespace', function() {
+    it('should remove a namespace', function () {
         var server = new hapi.Server();
         server.connection({ port: 9090 });
         server.register(halacious, function () {
@@ -161,7 +164,7 @@ describe('Halacious Plugin', function () {
         server.register(halacious, function () {
             var rels, plugin = server.plugins.halacious;
             plugin.namespaces.add({ name: 'mycompany', prefix: 'mco' }).rel('a_rel').rel('c_rel');
-            plugin.namespaces.add({ name: 'yourcompany', prefix: 'yco'}).rel('b_rel').rel('d_rel');
+            plugin.namespaces.add({ name: 'yourcompany', prefix: 'yco' }).rel('b_rel').rel('d_rel');
             rels = plugin.rels();
             rels.should.have.length(4);
             _.pluck(rels, 'name').should.deep.equal(['a_rel', 'b_rel', 'c_rel', 'd_rel']);
@@ -190,7 +193,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { strict: true }}, function (err) {
+        server.register({ register: halacious, options: { strict: true } }, function (err) {
             if (err) return done(err);
             server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
             server.inject({
@@ -221,7 +224,7 @@ describe('Halacious Plugin', function () {
     });
 
     it('should route rel documentation', function (done) {
-        var server = new hapi.Server({ debug: { log: ['error']}});
+        var server = new hapi.Server({ debug: { log: ['error'] } });
         server.connection();
         server.register(vision, function (err) {
             if (err) done(err);
@@ -229,10 +232,10 @@ describe('Halacious Plugin', function () {
 
         server.register(halacious, function (err) {
             if (err) return done(err);
-            server.plugins.halacious.namespaces.add({dir: __dirname + '/rels/mycompany', prefix: 'mco'});
+            server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
         });
 
-        server.start(function(err) {
+        server.start(function (err) {
             if (err) return done(err);
 
             server.inject({
@@ -267,7 +270,7 @@ describe('Halacious Plugin', function () {
 
         server.register(halacious, function (err) {
             if (err) return done(err);
-            var path = server.plugins.halacious.route('test-route', {a: 'i', b: 'aint', c: 'fack'});
+            var path = server.plugins.halacious.route('test-route', { a: 'i', b: 'aint', c: 'fack' });
             path.should.equal('/i/aint/fack');
             done();
         });
@@ -322,10 +325,51 @@ describe('Halacious Plugin', function () {
 
         server.register(halacious, function (err) {
             if (err) return done(err);
-            server.plugins.halacious.route.bind(halacious, 'deez-treez', { foo: 'are', bar: 'fire/proof', things: { should: 'not break' } }).should.not.throw;
-            var path = server.plugins.halacious.route('deez-treez', { foo: 'are', bar: 'fire/proof', things: { should: 'not break' } });
+            server.plugins.halacious.route.bind(halacious, 'deez-treez', {
+                foo: 'are',
+                bar: 'fire/proof',
+                things: { should: 'not break' }
+            }).should.not.throw;
+            var path = server.plugins.halacious.route('deez-treez', {
+                foo: 'are',
+                bar: 'fire/proof',
+                things: { should: 'not break' }
+            });
             path.should.not.equal('/deez/treez/are/fire/proof');
             path.should.equal('/deez/treez/are/fire%2Fproof');
+            done();
+        });
+    });
+
+    it('should handle presence of optional Hapi route parameters in a named route', function (done) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+
+        server.route({
+            method: 'get',
+            path: '/deez/treez/{are?}',
+            config: {
+                handler: function (req, reply) {
+                    reply({ foo: req.params.foo });
+                },
+                plugins: {
+                    hal: {
+                        name: 'deez-treez'
+                    }
+                }
+            }
+        });
+
+        server.register(halacious, function (err) {
+            if (err) return done(err);
+
+            var path = null;
+            var fn = function () {
+                path = server.plugins.halacious.route('deez-treez', { are: 'fireproof' });
+            };
+            fn.should.not.throw(Error);
+            should.exist(path);
+            path.should.equal('/deez/treez/fireproof');
             done();
         });
     });
@@ -441,7 +485,7 @@ describe('Halacious Plugin', function () {
                 },
                 plugins: {
                     hal: {
-                        prepare: function(rep, done) {
+                        prepare: function (rep, done) {
                             rep.link('mco:boss', 'http://www.whitehouse.gov');
                             done();
                         }
@@ -490,7 +534,7 @@ describe('Halacious Plugin', function () {
                     reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234' });
                 },
                 plugins: {
-                    hal: function(rep, done) {
+                    hal: function (rep, done) {
                         rep.link('mco:boss', 'http://www.whitehouse.gov');
                         done();
                     }
@@ -535,7 +579,7 @@ describe('Halacious Plugin', function () {
             path: '/people/{id}',
             config: {
                 handler: function (req, reply) {
-                    reply({ firstName: 'Bob', lastName: 'Smith', boss: { firstName: 'Boss', lastName: 'Man'} });
+                    reply({ firstName: 'Bob', lastName: 'Smith', boss: { firstName: 'Boss', lastName: 'Man' } });
                 },
                 plugins: {
                     hal: {
@@ -572,7 +616,7 @@ describe('Halacious Plugin', function () {
                 lastName: 'Smith',
                 _embedded: {
                     'mco:boss': {
-                        _links: { self: { href: '/people/100/boss'} },
+                        _links: { self: { href: '/people/100/boss' } },
                         firstName: 'Boss',
                         lastName: 'Man'
                     }
@@ -592,7 +636,12 @@ describe('Halacious Plugin', function () {
             path: '/people/{id}',
             config: {
                 handler: function (req, reply) {
-                    reply({ id: 100, firstName: 'Bob', lastName: 'Smith', boss: { id: 200, firstName: 'Boss', lastName: 'Man'} });
+                    reply({
+                        id: 100,
+                        firstName: 'Bob',
+                        lastName: 'Smith',
+                        boss: { id: 200, firstName: 'Boss', lastName: 'Man' }
+                    });
                 },
                 plugins: {
                     hal: {
@@ -630,7 +679,7 @@ describe('Halacious Plugin', function () {
                 lastName: 'Smith',
                 _embedded: {
                     'mco:boss': {
-                        _links: { self: { href: '/people/100/200'} },
+                        _links: { self: { href: '/people/100/200' } },
                         id: 200,
                         firstName: 'Boss',
                         lastName: 'Man'
@@ -657,7 +706,7 @@ describe('Halacious Plugin', function () {
                         total: 2,
                         items: [
                             { id: 100, firstName: 'Bob', lastName: 'Smith' },
-                            { id: 200, firstName: 'Boss', lastName: 'Man'}
+                            { id: 200, firstName: 'Boss', lastName: 'Man' }
                         ]
                     });
                 },
@@ -701,13 +750,13 @@ describe('Halacious Plugin', function () {
                 _embedded: {
                     'mco:person': [
                         {
-                            _links: { self: { href: '/people/100' }, 'mco:boss': { href: '/people/100/boss'}},
+                            _links: { self: { href: '/people/100' }, 'mco:boss': { href: '/people/100/boss' } },
                             id: 100,
                             firstName: 'Bob',
                             lastName: 'Smith'
                         },
                         {
-                            _links: { self: { href: '/people/200' }, 'mco:boss': { href: '/people/200/boss'}},
+                            _links: { self: { href: '/people/200' }, 'mco:boss': { href: '/people/200/boss' } },
                             id: 200,
                             firstName: 'Boss',
                             lastName: 'Man'
@@ -732,7 +781,7 @@ describe('Halacious Plugin', function () {
                         firstName: 'Bob',
                         lastName: 'Smith',
                         bossId: '1234',
-                        toHal: function(rep, done) {
+                        toHal: function (rep, done) {
                             rep.link('mco:boss', './boss');
                             done();
                         }
@@ -767,7 +816,7 @@ describe('Halacious Plugin', function () {
             done();
         });
     });
-    
+
     it('should allow for programmatic population of a hal entity and it\'s configured embedded entities', function (done) {
         var server = new hapi.Server();
         server.connection({ port: 9090 });
@@ -778,20 +827,20 @@ describe('Halacious Plugin', function () {
             path: '/people/{id}',
             config: {
                 handler: function (req, reply) {
-                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234', foo: {id: '5678'}});
+                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234', foo: { id: '5678' } });
                 },
                 plugins: {
                     hal: {
-                        prepare: function(rep, done) {
+                        prepare: function (rep, done) {
                             rep.link('mco:boss', 'http://www.whitehouse.gov');
                             done();
                         },
                         embedded: {
-                            'foo' : {
+                            'foo': {
                                 path: 'foo',
                                 href: '/foo/{item.id}',
-                                prepare: function(rep, next) {
-                                    setTimeout(function() {
+                                prepare: function (rep, next) {
+                                    setTimeout(function () {
                                         rep.link('foo:bar', 'http://www.foo.com');
                                         next();
                                     }, 500);
@@ -838,7 +887,7 @@ describe('Halacious Plugin', function () {
             done();
         });
     });
-    
+
     it('should omit missing configured embedded entities', function (done) {
         var server = new hapi.Server();
         server.connection({ port: 9090 });
@@ -849,24 +898,24 @@ describe('Halacious Plugin', function () {
             path: '/people/{id}',
             config: {
                 handler: function (req, reply) {
-                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234', foo: {id: '5678'}});
+                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234', foo: { id: '5678' } });
                 },
                 plugins: {
                     hal: {
-                        prepare: function(rep, done) {
+                        prepare: function (rep, done) {
                             rep.link('mco:boss', 'http://www.whitehouse.gov');
                             done();
                         },
                         embedded: {
-                            'foo' : {
+                            'foo': {
                                 path: 'foo',
                                 href: '/foo/{item.id}',
-                                prepare: function(rep, next) {
+                                prepare: function (rep, next) {
                                     rep.link('foo:bar', 'http://www.foo.com');
                                     next();
                                 }
                             },
-                            'bar' : {
+                            'bar': {
                                 path: 'notthere',
                                 href: '/bar/{item.id}'
                             }
@@ -922,19 +971,19 @@ describe('Halacious Plugin', function () {
             path: '/people/{id}',
             config: {
                 handler: function (req, reply) {
-                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234', foo: [{id: '5678'}]});
+                    reply({ firstName: 'Bob', lastName: 'Smith', bossId: '1234', foo: [{ id: '5678' }] });
                 },
                 plugins: {
                     hal: {
-                        prepare: function(rep, done) {
+                        prepare: function (rep, done) {
                             rep.link('mco:boss', 'http://www.whitehouse.gov');
                             done();
                         },
                         embedded: {
-                            'foo' : {
+                            'foo': {
                                 path: 'foo',
                                 href: '/foo/{item.id}',
-                                prepare: function(rep, next) {
+                                prepare: function (rep, next) {
                                     rep.link('foo:bar', 'http://www.foo.com');
                                     next();
                                 }
@@ -1040,7 +1089,7 @@ describe('Halacious Plugin', function () {
         });
 
         server.register({
-            register:halacious,
+            register: halacious,
             options: {
                 absolute: true
             }
@@ -1079,7 +1128,10 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+        server.register({
+            register: halacious,
+            options: { mediaTypes: ['application/json', 'application/hal+json'] }
+        }, function (err) {
             if (err) return done(err);
         });
 
@@ -1130,7 +1182,7 @@ describe('Halacious Plugin', function () {
             path: '/people',
             config: {
                 handler: function (req, reply) {
-                    reply({ items: [{ id: 100, firstName: 'Louis', lastName: 'CK' }]});
+                    reply({ items: [{ id: 100, firstName: 'Louis', lastName: 'CK' }] });
                 },
                 plugins: {
                     hal: {
@@ -1146,7 +1198,10 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+        server.register({
+            register: halacious,
+            options: { mediaTypes: ['application/json', 'application/hal+json'] }
+        }, function (err) {
             if (err) return done(err);
         });
 
@@ -1154,18 +1209,18 @@ describe('Halacious Plugin', function () {
         server.inject({
             method: 'get',
             url: '/people?q=funny&start=1&token=12345',
-            headers: { Accept: 'application/hal+json'}
+            headers: { Accept: 'application/hal+json' }
         }, function (res) {
             res.statusCode.should.equal(200);
             result = JSON.parse(res.payload);
             result.should.deep.equal({
                 _links: {
-                        self: { href: '/people?q=funny&start=1' }
+                    self: { href: '/people?q=funny&start=1' }
                 },
                 _embedded: {
                     items: [
                         {
-                            _links: { self: { href: '/people/100' }},
+                            _links: { self: { href: '/people/100' } },
                             id: 100,
                             firstName: 'Louis',
                             lastName: 'CK'
@@ -1192,7 +1247,10 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+        server.register({
+            register: halacious,
+            options: { mediaTypes: ['application/json', 'application/hal+json'] }
+        }, function (err) {
             if (err) return done(err);
         });
 
@@ -1200,7 +1258,7 @@ describe('Halacious Plugin', function () {
         server.inject({
             method: 'post',
             url: '/api/people',
-            headers: { Accept: 'application/hal+json'}
+            headers: { Accept: 'application/hal+json' }
         }, function (res) {
             try {
                 res.statusCode.should.equal(201);
@@ -1235,7 +1293,10 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+        server.register({
+            register: halacious,
+            options: { mediaTypes: ['application/json', 'application/hal+json'] }
+        }, function (err) {
             if (err) return done(err);
         });
 
@@ -1243,7 +1304,7 @@ describe('Halacious Plugin', function () {
         server.inject({
             method: 'get',
             url: '/api/people/100',
-            headers: { Accept: 'application/hal+json'}
+            headers: { Accept: 'application/hal+json' }
         }, function (res) {
             try {
                 res.statusCode.should.equal(200);
@@ -1277,14 +1338,17 @@ describe('Halacious Plugin', function () {
                 }
             });
 
-            server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+            server.register({
+                register: halacious,
+                options: { mediaTypes: ['application/json', 'application/hal+json'] }
+            }, function (err) {
                 if (err) return done(err);
             });
 
             server.inject({
                 method: 'get',
                 url: 'http://localhost:9090/api/people/100',
-                headers: { Accept: 'application/hal+json'}
+                headers: { Accept: 'application/hal+json' }
             }, function (res) {
                 var result = JSON.parse(res.payload);
                 result._links.self.should.have.property('href', 'http://localhost:9090/api/people/100');
@@ -1314,14 +1378,17 @@ describe('Halacious Plugin', function () {
                 }
             });
 
-            server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+            server.register({
+                register: halacious,
+                options: { mediaTypes: ['application/json', 'application/hal+json'] }
+            }, function (err) {
                 if (err) return done(err);
             });
 
             server.inject({
                 method: 'get',
                 url: 'http://localhost:9090/api/people/100',
-                headers: { Accept: 'application/hal+json'}
+                headers: { Accept: 'application/hal+json' }
             }, function (res) {
                 var result = JSON.parse(res.payload);
                 result._links.schedule.should.have.property('href', 'http://localhost:9090/api/people/100/schedule');
@@ -1338,7 +1405,7 @@ describe('Halacious Plugin', function () {
                 path: '/api/people/100',
                 config: {
                     handler: function (req, reply) {
-                        reply({ firstName: 'Bob', lastName: 'Smith', boss: { firstName: 'Boss', lastName: 'Man'} });
+                        reply({ firstName: 'Bob', lastName: 'Smith', boss: { firstName: 'Boss', lastName: 'Man' } });
                     },
                     plugins: {
                         hal: {
@@ -1354,14 +1421,17 @@ describe('Halacious Plugin', function () {
                 }
             });
 
-            server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+            server.register({
+                register: halacious,
+                options: { mediaTypes: ['application/json', 'application/hal+json'] }
+            }, function (err) {
                 if (err) return done(err);
             });
 
             server.inject({
                 method: 'get',
                 url: 'http://localhost:9090/api/people/100',
-                headers: { Accept: 'application/hal+json'}
+                headers: { Accept: 'application/hal+json' }
             }, function (res) {
                 var result = JSON.parse(res.payload);
                 result._embedded['mco:boss']._links.self.should.have.property('href', 'http://localhost:9090/api/people/100/boss');
@@ -1388,14 +1458,17 @@ describe('Halacious Plugin', function () {
                 }
             });
 
-            server.register({ register: halacious, options: { mediaTypes: ['application/json', 'application/hal+json']}}, function (err) {
+            server.register({
+                register: halacious,
+                options: { mediaTypes: ['application/json', 'application/hal+json'] }
+            }, function (err) {
                 if (err) return done(err);
             });
 
             server.inject({
                 method: 'post',
                 url: 'http://localhost:9090/api/people',
-                headers: { Accept: 'application/hal+json'}
+                headers: { Accept: 'application/hal+json' }
             }, function (res) {
                 var result = JSON.parse(res.payload);
                 result._links.self.should.have.property('href', 'http://localhost:9090/api/people/100');
@@ -1428,7 +1501,7 @@ describe('Halacious Plugin', function () {
         server.route({
             method: 'get',
             path: '/people',
-            handler: function(req, reply) {
+            handler: function (req, reply) {
                 reply({
                     items: [{ id: 100 }, { id: 200 }]
                 });
@@ -1439,7 +1512,7 @@ describe('Halacious Plugin', function () {
                         embedded: {
                             'mco:person': {
                                 path: 'items',
-                                href: function(rep, ctx) {
+                                href: function (rep, ctx) {
                                     return rep.route('person', { id: ctx.item.id });
                                 }
                             }
@@ -1505,7 +1578,7 @@ describe('Halacious Plugin', function () {
                     hal: {
                         query: '{?full}',
                         links: {
-                            'mco:boss': function(rep, entity) {
+                            'mco:boss': function (rep, entity) {
                                 return rep.route('person', { id: entity.bossId });
                             }
                         }
@@ -1564,7 +1637,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { absolute: true }}, function (err) {
+        server.register({ register: halacious, options: { absolute: true } }, function (err) {
             if (err) return done(err);
 
             server.plugins.halacious.namespaces
@@ -1580,7 +1653,7 @@ describe('Halacious Plugin', function () {
             result.should.deep.equal({
                 _links: {
                     curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
-                    self: { href: server.info.uri + '/api/'},
+                    self: { href: server.info.uri + '/api/' },
                     'mco:people': { href: server.info.uri + '/people{?full}', templated: true }
                 }
             });
@@ -1615,7 +1688,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { absolute: true }}, function (err) {
+        server.register({ register: halacious, options: { absolute: true } }, function (err) {
             if (err) return done(err);
 
             server.plugins.halacious.namespaces
@@ -1631,7 +1704,7 @@ describe('Halacious Plugin', function () {
             result.should.deep.equal({
                 _links: {
                     curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
-                    self: { href: server.info.uri + '/people'}
+                    self: { href: server.info.uri + '/people' }
                 },
                 _embedded: {
                     'mco:person': []
@@ -1657,7 +1730,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { absolute: true }}, function (err) {
+        server.register({ register: halacious, options: { absolute: true } }, function (err) {
             if (err) return done(err);
         });
 
@@ -1691,7 +1764,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { absolute: true }}, function (err) {
+        server.register({ register: halacious, options: { absolute: true } }, function (err) {
             if (err) return done(err);
         });
 
@@ -1722,7 +1795,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { absolute: true }}, function (err) {
+        server.register({ register: halacious, options: { absolute: true } }, function (err) {
             if (err) return done(err);
         });
 
@@ -1761,7 +1834,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { absolute: true, protocol: 'https' }}, function (err) {
+        server.register({ register: halacious, options: { absolute: true, protocol: 'https' } }, function (err) {
             if (err) return done(err);
         });
 
@@ -1794,7 +1867,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { absolute: true, host: 'www.cloud.com' }}, function (err) {
+        server.register({ register: halacious, options: { absolute: true, host: 'www.cloud.com' } }, function (err) {
             if (err) return done(err);
         });
 
@@ -1828,7 +1901,7 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: { absolute: true }}, function (err) {
+        server.register({ register: halacious, options: { absolute: true } }, function (err) {
             if (err) return done(err);
         });
 
@@ -1870,9 +1943,11 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: {
-            requireHalJsonAcceptHeader: true
-        }}, function (err) {
+        server.register({
+            register: halacious, options: {
+                requireHalJsonAcceptHeader: true
+            }
+        }, function (err) {
             if (err) return done(err);
         });
 
@@ -1940,9 +2015,11 @@ describe('Halacious Plugin', function () {
             }
         });
 
-        server.register({ register: halacious, options: {
-            requireHalJsonAcceptHeader: true
-        }}, function (err) {
+        server.register({
+            register: halacious, options: {
+                requireHalJsonAcceptHeader: true
+            }
+        }, function (err) {
             if (err) return done(err);
         });
 
@@ -1956,7 +2033,7 @@ describe('Halacious Plugin', function () {
             res.headers['content-type'].should.contain('application/hal+json');
             result = JSON.parse(res.payload);
             result.should.deep.equal({
-                _links: { self: { href: '/people/100'}},
+                _links: { self: { href: '/people/100' } },
                 firstName: 'Bob',
                 lastName: 'Smith'
             });
