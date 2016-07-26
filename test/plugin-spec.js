@@ -4,6 +4,7 @@ var chai = require('chai');
 var should = chai.should();
 var plugin = require('../lib/plugin');
 var hapi = require('hapi');
+var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
 var chaiString = require('chai-string');
 var halacious = require('../');
@@ -1960,6 +1961,75 @@ describe('Halacious Plugin', function () {
                 lastName: 'Smith'
             });
             done();
+        });
+    });
+
+    it('should not replace the original successful response to allow to modify it by other plugins', function (done) {
+        var server = new hapi.Server();
+        server.connection({port: 9090});
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people/{id}',
+            config: {
+                handler: function (req, reply) {
+                    reply({firstName: 'Bob', lastName: 'Smith'});
+                }
+            }
+        });
+
+        var callback = sinon.spy()
+
+        var anotherPlugin = {
+            register: function (server, options, next) {
+                server.ext('onPreResponse', function(request, reply) {
+                    callback()
+                    reply.continue()
+                })
+
+                next();
+            }};
+
+        anotherPlugin.register.attributes = {
+            name: 'anotherPlugin',
+            version: '1.0.0'
+        };
+
+        var plugins = [
+            {
+                register: halacious,
+                options: {
+                    requireHalJsonAcceptHeader: true
+                }
+            },
+            {
+                register: anotherPlugin
+            }
+        ];
+
+        server.register(plugins, {}, function (err) {
+            if (err) return done(err);
+
+            // test
+            server.inject({
+                method: 'get',
+                url: '/people/100',
+                headers: {accept: 'application/hal+json'}
+            }, function (res) {
+                res.statusCode.should.equal(200);
+                res.headers['content-type'].should.contain('application/hal+json');
+                result = JSON.parse(res.payload);
+
+                callback.should.be.called
+
+                result.should.deep.equal({
+                    _links: {self: {href: '/people/100'}},
+                    firstName: 'Bob',
+                    lastName: 'Smith'
+                });
+                done();
+            });
         });
     });
 });
