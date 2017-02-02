@@ -47,7 +47,7 @@ describe('Representation Factory', function() {
         rep._links['mco:boss'][1].should.have.property('href', '/people/101');
         rep._links['mco:boss'][2].should.have.property('href', '/people/102');
     });
-    
+
     it('should create a single-element array of links', function () {
         var entity = {};
         var rep = rf.create(entity, '/people');
@@ -117,6 +117,53 @@ describe('Representation Factory', function() {
         var rep = rf.create(entity, '/me');
         var json = JSON.stringify(rep);
         json.should.deep.equal('{"_links":{"self":{"href":"/me"}},"id":100,"name":"John Smith","company":"Acme","boss":{"id":100,"name":"Boss Man","company":"Acme"}}');
+    });
+
+    it('should handle direct call toJSON correctly', function () {
+        var entity = {
+            _id: 100,
+            _hidden: 'hidden',
+            name: 'John Smith',
+            company: 'Acme',
+            toJSON: function () {
+                return {
+                    id: this._id,
+                    name: this.name,
+                    company: this.company,
+                }
+            },
+        };
+
+        var rep = rf.create(entity, '/me');
+        rep.embed('mco:boss', './boss', [{
+            _id: 100,
+            _hidden: 'hidden',
+            name: 'Boss Man',
+            company: 'Acme',
+            toJSON: function () {
+                return {
+                    id: this._id,
+                    name: this.name,
+                    company: this.company
+                }
+            }
+        }]);
+        rep.embed('mco:boss2', './boss2', {
+            _id: 100,
+            _hidden: 'hidden',
+            name: 'Boss Man',
+            company: 'Acme',
+            toJSON: function () {
+                return {
+                    id: this._id,
+                    name: this.name,
+                    company: this.company
+                }
+            }
+        })
+
+        var json = rep.toJSON();
+        json.should.deep.equal({"_links":{"self":{"href":"/me"}},"id":100,"name":"John Smith","company":"Acme","_embedded":{"mco:boss":[{"_links":{"self":{"href":"/me/boss"}},"id":100,"name":"Boss Man","company":"Acme"}],"mco:boss2":{"_links":{"self":{"href":"/me/boss2"}},"id":100,"name":"Boss Man","company":"Acme"}}});
     });
 
     it('should link to a registered rel', function () {
