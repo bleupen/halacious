@@ -2060,7 +2060,7 @@ describe('Halacious Plugin', function () {
 
         var anotherPlugin = {
             register: function (server, options, next) {
-                server.ext('onPreResponse', function(request, reply) {
+                server.ext('onPostHandler', function(request, reply) {
                     callback()
                     reply.continue()
                 })
