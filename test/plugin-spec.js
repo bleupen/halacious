@@ -1652,7 +1652,7 @@ describe('Halacious Plugin', function () {
             result = JSON.parse(res.payload);
             result.should.deep.equal({
                 _links: {
-                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
+                    curies: [{ name: 'mco', href: server.info.uri + '/rels/mycompany/{rel}', templated: true }],
                     self: { href: server.info.uri + '/api/' },
                     'mco:people': { href: server.info.uri + '/people{?full}', templated: true }
                 }
@@ -1703,7 +1703,7 @@ describe('Halacious Plugin', function () {
             result = JSON.parse(res.payload);
             result.should.deep.equal({
                 _links: {
-                    curies: [{ name: 'mco', href: '/rels/mycompany/{rel}', templated: true }],
+                    curies: [{ name: 'mco', href: server.info.uri + '/rels/mycompany/{rel}', templated: true }],
                     self: { href: server.info.uri + '/people' }
                 },
                 _embedded: {
