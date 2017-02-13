@@ -8,4 +8,4 @@ body
                 =namespace.description
                 ul
                     each rel in namespace.rels
-                        li #[a(href="#{path}/#{namespace.name}/#{rel.name}") #{rel.name}] #{rel.description}
+                        li #[a(href=path + "/" + namespace.name + "/" + rel.name) #{rel.name}] #{rel.description}
