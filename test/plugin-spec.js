@@ -1475,6 +1475,48 @@ describe('Halacious Plugin', function () {
                 done();
             });
         });
+
+        it('should make configured links absolute', function(done) {
+            var server = new hapi.Server();
+            server.connection({ port: 9090 });
+
+            server.route({
+                method: 'post',
+                path: '/api/people',
+                config: {
+                    handler: function (req, reply) {
+                        reply({ firstName: 'Bob', lastName: 'Smith' });
+                    },
+                    plugins: {
+                        hal: {
+                            absolute: true,
+                            prepare: function(rep, done) {
+                                rep.link('mco:boss', '/api/people/101');
+                                done();
+                            }
+                        }
+                    }
+                }
+            });
+
+            server.register({
+                register: halacious,
+                options: { mediaTypes: ['application/json', 'application/hal+json'], absolute: true }
+
+            }, function (err) {
+                if (err) return done(err);
+            });
+
+            server.inject({
+                method: 'post',
+                url: 'http://localhost:9090/api/people',
+                headers: { Accept: 'application/hal+json' }
+            }, function (res) {
+                var result = JSON.parse(res.payload);
+                result.should.have.property('_links').that.has.property('mco:boss').that.has.property('href', 'http://localhost:9090/api/people/101')
+                done();
+            });
+        });
     });
 
     it('should support resolving embedded hrefs by ids', function (done) {
