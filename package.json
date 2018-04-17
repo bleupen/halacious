@@ -7,6 +7,8 @@
   },
   "main": "index.js",
   "scripts": {
+    "fix-js": "yarn run lint --fix",
+    "lint": "eslint --color --ignore-path .gitignore --ignore-pattern \"!**/.*\" .",
     "test": "node_modules/.bin/mocha test"
   },
   "repository": {
@@ -28,6 +30,14 @@
   "devDependencies": {
     "chai": "4.1.2",
     "chai-string": "^1.1.6",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-config-prettier": "^2.6.0",
+    "eslint-import-resolver-node": "^0.3.1",
+    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-mocha": "^5.0.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-prettier": "^2.3.1",
     "gulp": "^3.8.11",
     "gulp-bump": "3.1.0",
     "gulp-filter": "5.1.0",
@@ -39,6 +49,7 @@
     "hapi": "~17.3.1",
     "jshint-stylish": "2.2.1",
     "mocha": "5.1.0",
+    "prettier": "^1.12.0",
     "sinon": "^4.5.0",
     "sinon-chai": "^3.0.0",
     "vision": "5.3.2"
