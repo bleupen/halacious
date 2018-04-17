@@ -1,16 +1,15 @@
 'use strict';
 
-var hapi = require('hapi');
+const hapi = require('hapi');
 
-var server = new hapi.Server();
-server.connection({ port: 9090 });
+const server = new hapi.Server({ port: 9090 });
 
 server.route({
     method: 'get',
     path: '/people',
     config: {
-        handler: function (req, reply) {
-            reply ({
+        handler: function (req, h) {
+            return ({
                 count: 2,
                 start: 0,
                 total: 2,
@@ -19,7 +18,6 @@ server.route({
                     { id: 200, firstName: 'Boss', lastName: 'Man'}
                 ]
             });
-            reply({ _id: req.params.id, firstName: 'Brad', lastName: 'Leupen'});
         },
         plugins: {
             hal: {
@@ -42,8 +40,8 @@ server.route({
     method: 'get',
     path: '/people/{id}',
     config: {
-        handler: function (req, reply) {
-            reply({ _id: req.params.id, firstName: 'Brad', lastName: 'Leupen'});
+        handler: function (req, h) {
+            return({ _id: req.params.id, firstName: 'Brad', lastName: 'Leupen'});
         },
         plugins: {
             hal: {
@@ -60,11 +58,9 @@ server.route({
         }
     }
 });
-server.register(require('../'), function (err) {
-    if (err) throw err;
+server.register(require('../')).then(() => {
     server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco', description: 'My companys rels'});
-    server.start(function (err) {
-        if (err) throw err;
+    server.start().then(() => {
         console.log('server started at ' + server.info.uri);
     });
 });
