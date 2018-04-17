@@ -41,7 +41,7 @@ server.register(halacious).catch(err => {
 server.route({
     method: 'get',
     path: '/hello/{name}',
-    handler: function() {
+    handler: function(req) {
       return({ message: 'Hello, '+req.params.name });
     }
 });
