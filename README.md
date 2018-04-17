@@ -1,4 +1,4 @@
-# halacious
+# halacious for HAPI v17
 
 a better HAL processor for Hapi
 
@@ -30,26 +30,26 @@ npm install halacious --save
 
 Register the plugin with the app server
 ```javascript
-var hapi = require('hapi');
-var halacious = require('halacious');
+const hapi = require('hapi');
+const halacious = require('halacious');
 
-var server = new hapi.Server();
-server.connection({ port: 8080 });
-server.register(halacious, function(err){
-    if (err) console.log(err);
+const server = new hapi.Server({ port: 8080 });
+server.register(halacious).catch(err => {
+  console.error(err);
 });
 
 server.route({
     method: 'get',
     path: '/hello/{name}',
-    handler: function(req, reply) {
-        reply({ message: 'Hello, '+req.params.name });
+    handler: function() {
+      return({ message: 'Hello, '+req.params.name });
     }
 });
 
-server.start(function(err){
-    if (err) return console.log(err);
-    console.log('Server started at %s', server.info.uri);
+server.start().then(() => {
+  console.info('Server started at %s', server.info.uri);
+}).catch(err => {
+  console.error(err);
 });
 ```
 Launch the server:
