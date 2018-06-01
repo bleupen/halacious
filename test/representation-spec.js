@@ -10,8 +10,9 @@ let halacious;
 let rf;
 
 describe('Representation Factory', () => {
+  let server;
   beforeEach(done => {
-    const server = new hapi.Server({ port: 9090 });
+    server = new hapi.Server({ port: 9090 });
     server
       .register(require('..'))
       .then(() => {
@@ -23,6 +24,12 @@ describe('Representation Factory', () => {
       .catch(err => {
         done(err);
       });
+  });
+
+  afterEach(done => {
+    server.stop().then(() => {
+      done();
+    });
   });
 
   it('should create a new representation', () => {

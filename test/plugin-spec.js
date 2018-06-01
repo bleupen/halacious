@@ -17,13 +17,24 @@ chai.use(sinonChai);
 chai.use(chaiString);
 
 describe('Halacious Plugin', () => {
+  let server;
+  beforeEach(done => {
+    server = new hapi.Server({ port: 9090 });
+    done();
+  });
+
+  afterEach(done => {
+    server.stop().then(() => {
+      done();
+    });
+  });
+
   it('should have a registration function', () => {
     plugin.should.have.property('register');
     plugin.register.should.be.a('Function');
   });
 
   it('should expose a namespace function', done => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       server.plugins.halacious.should.have.property('namespaces');
       server.plugins.halacious.namespace.should.be.a('Function');
@@ -32,7 +43,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should create a namespace', done => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       let ns = server.plugins.halacious.namespaces.add({
         name: 'mycompany',
@@ -48,7 +58,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should look up a namespace', done => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       server.plugins.halacious.namespaces.add({
         name: 'mycompany',
@@ -64,7 +73,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should return a sorted array of namespaces', () => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       let namespaces;
       server.plugins.halacious.namespaces.add({
@@ -89,7 +97,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should fail when registering an invalid namespace', () => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       const plugin = server.plugins.halacious;
       plugin.namespaces.add
@@ -102,7 +109,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should add a rel to a namespace', done => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       let ns = server.plugins.halacious.namespaces.add({
         name: 'mycompany',
@@ -117,7 +123,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should look up a rel by prefix:name', done => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       let ns = server.plugins.halacious.namespaces.add({
         name: 'mycompany',
@@ -133,7 +138,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should remove a namespace', () => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       server.plugins.halacious.namespaces.add({
         name: 'mycompany',
@@ -153,7 +157,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should look up a rel by ns / name', done => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       let ns = server.plugins.halacious.namespaces.add({
         name: 'mycompany',
@@ -169,7 +172,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should add a rel to a specified namespace', done => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       let rels;
       const plugin = server.plugins.halacious;
@@ -184,7 +186,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should return a sorted list of rels', done => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       let rels;
       const plugin = server.plugins.halacious;
@@ -209,8 +210,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should bomb on a bad rel in strict mode', done => {
-    const server = new hapi.Server({ port: 9090 });
-
     server.route({
       method: 'get',
       path: '/foo',
@@ -252,7 +251,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should install a directory-style namespace', done => {
-    const server = new hapi.Server({ port: 9090 });
     server.register(halacious).then(() => {
       let ns = server.plugins.halacious.namespaces.add({
         dir: `${__dirname}/rels/mycompany`,
@@ -270,7 +268,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should route rel documentation', async () => {
-    const server = new hapi.Server();
     await server.register(vision);
 
     await server.register(halacious).then(() => {
@@ -295,8 +292,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should resolve a named route path', done => {
-    const server = new hapi.Server({ port: 9090 });
-
     server.route({
       method: 'get',
       path: '/{a}/{b}/{c}',
@@ -329,8 +324,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should encode parameter values when resolving a named route', done => {
-    const server = new hapi.Server({ port: 9090 });
-
     server.route({
       method: 'get',
       path: '/deez/treez/{foo}/{bar}',
@@ -363,8 +356,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should passively ignore child objects in parameter hash when resolving a named route', done => {
-    const server = new hapi.Server({ port: 9090 });
-
     server.route({
       method: 'get',
       path: '/deez/treez/{foo}/{bar}',
@@ -404,8 +395,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should handle presence of optional Hapi route parameters in a named route', done => {
-    const server = new hapi.Server({ port: 9090 });
-
     server.route({
       method: 'get',
       path: '/deez/treez/{are?}',
@@ -441,7 +430,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should convert a json entity into a HAL representation with self and a simple link', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -497,7 +485,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should convert a json entity into a HAL representation with self and a templated link', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -554,7 +541,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should allow for programmatic population of a hal entity', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -612,7 +598,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should support a hal configuration function', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -668,7 +653,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should embed an object property', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -737,7 +721,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should support embedded url templates', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -809,7 +792,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should provide embedded collection support', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -901,7 +883,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should invoke an optional toHal() method on the source entity', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
     server.route({
       method: 'get',
@@ -958,7 +939,6 @@ describe('Halacious Plugin', () => {
   });
 
   it("should allow for programmatic population of a hal entity and it's configured embedded entities", done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -1042,7 +1022,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should omit missing configured embedded entities', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -1128,7 +1107,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should allow an embedded entity to be forced to be a single element array', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -1212,7 +1190,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should preserve 201 status code and use the location header when an entity has been POSTed', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -1255,7 +1232,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('use of location header for absolute link generation should not break url search', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -1300,7 +1276,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should support an array of acceptable media types', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -1362,7 +1337,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should regurgitate known query parameters in the self link', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -1424,7 +1398,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should resolve relative locations', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -1470,8 +1443,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should preserve response headers', done => {
-    const server = new hapi.Server({ port: 9090 });
-
     server.route({
       method: 'get',
       path: '/api/people/100',
@@ -1509,8 +1480,6 @@ describe('Halacious Plugin', () => {
 
   describe('when the absolute flag is turned on', () => {
     it('should create an absolute self link', done => {
-      const server = new hapi.Server({ port: 9090 });
-
       server.route({
         method: 'get',
         path: '/api/people/100',
@@ -1552,8 +1521,6 @@ describe('Halacious Plugin', () => {
     });
 
     it('should create an absolute non-self link', done => {
-      const server = new hapi.Server({ port: 9090 });
-
       server.route({
         method: 'get',
         path: '/api/people/100',
@@ -1598,8 +1565,6 @@ describe('Halacious Plugin', () => {
     });
 
     it('should embed an object with an absolute link', done => {
-      const server = new hapi.Server({ port: 9090 });
-
       server.route({
         method: 'get',
         path: '/api/people/100',
@@ -1651,8 +1616,6 @@ describe('Halacious Plugin', () => {
     });
 
     it('should handle created entities', done => {
-      const server = new hapi.Server({ port: 9090 });
-
       server.route({
         method: 'post',
         path: '/api/people',
@@ -1696,8 +1659,6 @@ describe('Halacious Plugin', () => {
     });
 
     it('should make configured links absolute', done => {
-      const server = new hapi.Server({ port: 9090 });
-
       server.route({
         method: 'post',
         path: '/api/people',
@@ -1747,7 +1708,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should support resolving embedded hrefs by ids', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -1844,7 +1804,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should support resolving link hrefs by ids', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -1911,7 +1870,7 @@ describe('Halacious Plugin', () => {
   });
 
   it('should support absolute api root hrefs', done => {
-    const server = new hapi.Server({
+    server = new hapi.Server({
       debug: { request: ['*'], log: ['*'] },
       port: 9090,
     });
@@ -1974,7 +1933,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should embed an empty representation', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -2038,7 +1996,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should not mess with array responses', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -2077,7 +2034,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should not process internal routes', done => {
-    const server = new hapi.Server({ port: 9090 });
     let employee = { first: 'John', last: 'Doe' };
 
     server.route({
@@ -2112,7 +2068,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should support external filtering of requests', done => {
-    const server = new hapi.Server({ port: 9090 });
     let employee = { first: 'John', last: 'Doe' };
 
     server.route({
@@ -2153,7 +2108,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should support overriding the url protocol', done => {
-    const server = new hapi.Server({ port: 9090 });
     let employee = { first: 'John', last: 'Doe' };
 
     let result;
@@ -2192,7 +2146,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should support overriding the hostname', done => {
-    const server = new hapi.Server({ port: 9090 });
     let employee = { first: 'John', last: 'Doe' };
 
     let result;
@@ -2232,7 +2185,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should support overriding the url builder', done => {
-    const server = new hapi.Server({ port: 9090 });
     let employee = { first: 'John', last: 'Doe' };
 
     let result;
@@ -2281,7 +2233,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should not HALify when another media type is preferred by default', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -2356,7 +2307,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should HALify when application/hal+json is explicitly asked for', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
@@ -2398,7 +2348,6 @@ describe('Halacious Plugin', () => {
   });
 
   it('should not replace the original successful response to allow to modify it by other plugins', done => {
-    const server = new hapi.Server({ port: 9090 });
     let result;
 
     server.route({
