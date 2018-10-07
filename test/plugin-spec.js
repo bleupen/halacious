@@ -328,7 +328,7 @@ describe('Halacious Plugin', () => {
       method: 'get',
       path: '/deez/treez/{foo}/{bar}',
       config: {
-        handler(req, h) {
+        handler(req) {
           return { foo: req.params.foo, bar: req.params.bar };
         },
         plugins: {

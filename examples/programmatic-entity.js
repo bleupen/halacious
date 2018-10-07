@@ -1,63 +1,61 @@
-'use strict';
+let hapi = require('hapi');
+let halacious = require('../');
 
-var hapi = require('hapi');
-var halacious = require('../');
-
-var server = new hapi.Server();
+let server = new hapi.Server();
 server.connection({ port: 8080 });
 
-server.register(require('vision'), function (err) {
-    if (err) return console.log(err);
+server.register(require('vision'), err => {
+  if (err) return console.log(err);
 });
 
-server.register(halacious, function(err){
-    if (err) console.log(err);
+server.register(halacious, err => {
+  if (err) console.log(err);
 });
 
 function User(id, firstName, lastName, googlePlusId) {
-    this.id = id;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.googlePlusId = googlePlusId;
+  this.id = id;
+  this.firstName = firstName;
+  this.lastName = lastName;
+  this.googlePlusId = googlePlusId;
 }
 
 User.prototype.toHal = function(rep, next) {
-    if (this.googlePlusId) {
-        rep.link('home', 'http://plus.google.com/' + this.googlePlusId);
-        rep.ignore('googlePlusId');
-    }
-    next();
+  if (this.googlePlusId) {
+    rep.link('home', `http://plus.google.com/${this.googlePlusId}`);
+    rep.ignore('googlePlusId');
+  }
+  next();
 };
 
 server.route({
-    method: 'get',
-    path: '/users',
-    config: {
-        handler: function (req, reply) {
-            reply({
-                start: 0,
-                count: 2,
-                limit: 2,
-                items: [
-                    new User(100, 'Brad', 'Leupen', '107835557095464780852'),
-                    new User(101, 'Mark', 'Zuckerberg')
-                ]
-            });
+  method: 'get',
+  path: '/users',
+  config: {
+    handler(req, reply) {
+      reply({
+        start: 0,
+        count: 2,
+        limit: 2,
+        items: [
+          new User(100, 'Brad', 'Leupen', '107835557095464780852'),
+          new User(101, 'Mark', 'Zuckerberg'),
+        ],
+      });
+    },
+    plugins: {
+      hal: {
+        embedded: {
+          item: {
+            path: 'items',
+            href: './{item.id}',
+          },
         },
-        plugins: {
-            hal: {
-                embedded: {
-                    item: {
-                        path: 'items',
-                        href: './{item.id}'
-                    }
-                }
-            }
-        }
-    }
+      },
+    },
+  },
 });
 
-server.start(function(err){
-    if (err) return console.log(err);
-    console.log('Server started at %s', server.info.uri);
+server.start(err => {
+  if (err) return console.log(err);
+  console.log('Server started at %s', server.info.uri);
 });

@@ -1,12 +1,3 @@
-/**
- * React Starter Kit (https://www.reactstarterkit.com/)
- *
- * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
 // ESLint configuration
 // http://eslint.org/docs/user-guide/configuring
 module.exports = {
@@ -30,19 +21,23 @@ module.exports = {
 
   rules: {
     // TODO: Update code and re-enable rules.
+    'consistent-return': 'off',
     'global-require': 'off',
     'func-names': 'off',
+    'import/order': 'off',
+    'no-param-reassign': 'off',
+    'no-shadow': 'off',
+    'one-var': 'off',
     'prefer-const': 'off',
-
-    // Not supporting nested package.json yet
-    // https://github.com/benmosher/eslint-plugin-import/issues/458
-    'import/no-extraneous-dependencies': 'off',
+    'prefer-destructuring': 'off',
 
     'import/extensions': [
       'error',
       'never',
       { packages: 'always', json: 'always' },
     ],
+
+    'no-cond-assign': ['error', 'except-parens'],
 
     // Recommend not to leave any console.log in your code
     // Use console.error, console.warn and console.info instead

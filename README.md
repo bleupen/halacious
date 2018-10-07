@@ -1,6 +1,12 @@
-# halacious for HAPI v17
+# halacious for HAPI
 
 a better HAL processor for Hapi
+
+## Node.js and HAPI Versions
+
+For HAPI v17+ use current release branch (6.x). Note this also requires Node.js v8.10+.
+
+For HAPI v16 use legacy release branch (5.x).
 
 ## Overview
 *Halacious* is a plugin for the HapiJS web application server that makes **HATEOASIFYING** your app ridiculously
@@ -26,6 +32,12 @@ be accomplished without writing any code at all.
 Start by npm installing the halacious library into your hapi project folder:
 ```
 npm install halacious --save
+```
+
+or 
+
+```
+yarn add halacious --dev
 ```
 
 Register the plugin with the app server
