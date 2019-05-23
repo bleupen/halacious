@@ -138,16 +138,16 @@ automatically convert nested objects into embedded HAL representations (if you a
 server.route({
     method: 'get',
     path: '/users/{userId}',
-        handler: function (req) {
-            return {
-                id: req.params.userId,
-                name: 'User ' + req.params.userId,
-                boss: {
-                    id: 1234,
-                    name: 'Boss Man'
-                }
-            };
-        },
+    handler: function (req) {
+        return {
+            id: req.params.userId,
+            name: 'User ' + req.params.userId,
+            boss: {
+                id: 1234,
+                name: 'Boss Man'
+            }
+        };
+    },
     config: {
         plugins: {
             hal: {
@@ -226,7 +226,6 @@ server.route({
     method: 'get',
     path: '/users',
     handler: function (req) {
-        // look up user
         return {
             start: 0,
             count: 2,
@@ -397,7 +396,7 @@ async function init () {
         path: '/users/{userId}',
         handler: function (req) {
             return { id: req.params.userId, name: 'User ' + req.params.userId, bossId: 200 };
-         },
+        },
         config: {
             plugins: {
                 hal: {
