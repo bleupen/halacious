@@ -1,16 +1,10 @@
-let hapi = require('hapi');
-let halacious = require('../');
+'use strict';
 
-let server = new hapi.Server();
-server.connection({ port: 8080 });
+require('module-alias/register');
 
-server.register(require('vision'), err => {
-  if (err) return console.log(err);
-});
-
-server.register(halacious, err => {
-  if (err) console.log(err);
-});
+const hapi = require('@hapi/hapi');
+const vision = require('@hapi/vision');
+const halacious = require('halacious');
 
 function User(id, firstName, lastName, googlePlusId) {
   this.id = id;
@@ -27,35 +21,44 @@ User.prototype.toHal = function(rep, next) {
   next();
 };
 
-server.route({
-  method: 'get',
-  path: '/users',
-  config: {
-    handler(req, reply) {
-      reply({
+async function init() {
+  const server = hapi.server({ port: 8080 });
+
+  await server.register(vision);
+
+  await server.register(halacious);
+
+  server.route({
+    method: 'get',
+    path: '/users',
+    handler() {
+      return {
         start: 0,
         count: 2,
         limit: 2,
         items: [
           new User(100, 'Brad', 'Leupen', '107835557095464780852'),
-          new User(101, 'Mark', 'Zuckerberg'),
-        ],
-      });
+          new User(101, 'Mark', 'Zuckerberg')
+        ]
+      };
     },
-    plugins: {
-      hal: {
-        embedded: {
-          item: {
-            path: 'items',
-            href: './{item.id}',
-          },
-        },
-      },
-    },
-  },
-});
+    config: {
+      plugins: {
+        hal: {
+          embedded: {
+            item: {
+              path: 'items',
+              href: './{item.id}'
+            }
+          }
+        }
+      }
+    }
+  });
 
-server.start(err => {
-  if (err) return console.log(err);
+  await server.start();
+
   console.log('Server started at %s', server.info.uri);
-});
+}
+
+init();

@@ -1,26 +1,29 @@
-let hapi = require('hapi');
-let halacious = require('../');
+'use strict';
 
-let server = new hapi.Server();
-server.connection({ port: 8080 });
+require('module-alias/register');
 
-server.register(require('vision'), err => {
-  if (err) return console.log(err);
-});
+const hapi = require('@hapi/hapi');
+const vision = require('@hapi/vision');
+const halacious = require('halacious');
 
-server.register(halacious, err => {
-  if (err) console.log(err);
-});
+async function init() {
+  const server = hapi.server({ port: 8080 });
 
-server.route({
-  method: 'get',
-  path: '/hello/{name}',
-  handler(req, reply) {
-    reply({ message: `Hello, ${req.params.name}` });
-  },
-});
+  await server.register(vision);
 
-server.start(err => {
-  if (err) return console.log(err);
+  await server.register(halacious);
+
+  server.route({
+    method: 'get',
+    path: '/hello/{name}',
+    handler(req) {
+      return { message: `Hello, ${req.params.name}` };
+    }
+  });
+
+  await server.start();
+
   console.log('Server started at %s', server.info.uri);
-});
+}
+
+init();

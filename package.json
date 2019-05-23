@@ -1,15 +1,18 @@
 {
-  "name": "halacious",
-  "version": "6.0.1",
+  "name": "@modernpoacher/halacious",
+  "version": "6.1.0",
   "description": "A better HAL processor for Hapi",
   "engines": {
     "node": ">=8.10.0"
   },
   "main": "index.js",
   "scripts": {
-    "fix-js": "npm run lint --fix",
     "lint": "eslint --color --ignore-path .gitignore --ignore-pattern \"!**/.*\" .",
-    "test": "mocha test"
+    "lint:fix": "npm run lint -- --fix",
+    "test": "mocha test",
+    "deps": "deps",
+    "deps:prod": "deps --save-prod",
+    "deps:dev": "deps --save-dev"
   },
   "repository": {
     "type": "git",
@@ -28,42 +31,45 @@
   },
   "homepage": "https://github.com/bleupen/halacious",
   "devDependencies": {
-    "chai": "4.2.0",
+    "@hapi/hapi": "^18.3.1",
+    "@hapi/vision": "^5.5.2",
+    "@modernpoacher/deps": "0.0.5",
+    "chai": "^4.2.0",
     "chai-string": "^1.5.0",
-    "eslint": "^5.6.1",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-config-prettier": "^3.1.0",
-    "eslint-import-resolver-node": "^0.3.1",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-mocha": "^5.2.0",
-    "eslint-plugin-node": "^7.0.1",
-    "eslint-plugin-prettier": "^3.0.0",
-    "gulp": "^3.8.11",
-    "gulp-bump": "3.1.1",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-import-resolver-node": "^0.3.2",
+    "eslint-plugin-import": "^2.17.2",
+    "eslint-plugin-mocha": "^5.3.0",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "gulp": "^4.0.2",
+    "gulp-bump": "^3.1.3",
     "gulp-eslint": "^5.0.0",
-    "gulp-filter": "5.1.0",
-    "gulp-git": "^2.8.0",
-    "gulp-mocha": "6.0.0",
-    "gulp-tag-version": "^1.2.1",
-    "hapi": "~17.6.0",
-    "mocha": "5.2.0",
-    "prettier": "^1.14.3",
-    "sinon": "^6.3.5",
-    "sinon-chai": "^3.2.0",
-    "vision": "5.4.0"
+    "gulp-filter": "^5.1.0",
+    "gulp-git": "^2.9.0",
+    "gulp-mocha": "^6.0.0",
+    "gulp-tag-version": "^1.3.1",
+    "mocha": "^6.1.4",
+    "prettier": "^1.17.1",
+    "sinon": "^7.3.2",
+    "sinon-chai": "^3.3.0"
   },
   "dependencies": {
-    "async": "2.6.1",
-    "hoek": "5.0.4",
-    "joi": "13.7.0",
-    "lodash": "4.17.11",
-    "marked": "^0.5.1",
-    "negotiator": "0.6.1",
-    "pug": "2.0.3",
-    "urijs": "^1.13.2",
-    "url-template": "^2.0.4"
+    "@hapi/boom": "^7.4.2",
+    "@hapi/hoek": "^6.2.3",
+    "@hapi/joi": "^15.0.3",
+    "async": "^3.0.0",
+    "lodash": "^4.17.11",
+    "marked": "^0.6.2",
+    "module-alias": "^2.2.0",
+    "negotiator": "^0.6.2",
+    "pug": "^2.0.3",
+    "urijs": "^1.19.1",
+    "url-template": "^2.0.8"
   },
-  "peerDependencies": {
-    "hapi": "~17"
+  "_moduleAliases": {
+    "halacious": "."
   }
 }

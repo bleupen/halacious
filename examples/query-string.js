@@ -1,48 +1,55 @@
-let hapi = require('hapi');
-let halacious = require('../');
+'use strict';
 
-let halaciousOpts = {
-  mediaTypes: ['application/json', 'application/hal+json'],
-};
+require('module-alias/register');
 
-let server = new hapi.Server();
-server.connection({ port: 8080 });
+const hapi = require('@hapi/hapi');
+const vision = require('@hapi/vision');
+const halacious = require('halacious');
 
-server.register(require('vision'), err => {
-  if (err) return console.log(err);
-});
+const { name: PLUGIN } = require('halacious/package.json');
 
-server.register({ register: halacious, options: halaciousOpts }, err => {
-  server.plugins.halacious.namespaces.add({
-    dir: `${__dirname}/rels/mycompany`,
-    prefix: 'mco',
+async function init() {
+  const server = hapi.server({ port: 8080 });
+
+  await server.register(vision);
+
+  await server.register({
+    plugin: halacious,
+    options: {
+      mediaTypes: ['application/json', 'application/hal+json']
+    }
   });
-  if (err) console.log(err);
-});
 
-server.route({
-  method: 'get',
-  path: '/users',
-  config: {
-    handler(req, reply) {
-      reply({ items: [{ id: 100, firstName: 'Louis', lastName: 'CK' }] });
+  server.plugins[PLUGIN].namespaces.add({
+    dir: `${__dirname}/rels/mycompany`,
+    prefix: 'mco'
+  });
+
+  server.route({
+    method: 'get',
+    path: '/users',
+    handler() {
+      return { items: [{ id: 100, firstName: 'Louis', lastName: 'CK' }] };
     },
-    plugins: {
-      hal: {
-        api: 'mco:users',
-        embedded: {
-          'mco:user': {
-            path: 'items',
-            href: './{item.id}',
+    config: {
+      plugins: {
+        hal: {
+          api: 'mco:users',
+          embedded: {
+            'mco:user': {
+              path: 'items',
+              href: './{item.id}'
+            }
           },
-        },
-        query: '{?q*,start,limit}',
-      },
-    },
-  },
-});
+          query: '{?q*,start,limit}'
+        }
+      }
+    }
+  });
 
-server.start(err => {
-  if (err) return console.log(err);
+  await server.start();
+
   console.log('Server started at %s', server.info.uri);
-});
+}
+
+init();

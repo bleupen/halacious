@@ -1,8 +1,10 @@
+'use strict';
+
 // ESLint configuration
 // http://eslint.org/docs/user-guide/configuring
 module.exports = {
   parserOptions: {
-    ecmaVersion: 2017,
+    ecmaVersion: 2017
   },
 
   extends: ['airbnb-base', 'prettier', 'plugin:node/recommended'],
@@ -10,16 +12,19 @@ module.exports = {
   plugins: ['prettier', 'node', 'mocha'],
 
   globals: {
-    __DEV__: true,
+    __DEV__: true
   },
 
   env: {
     browser: true,
     es6: true,
-    node: true,
+    node: true
   },
 
   rules: {
+    'import/no-unresolved': [2, { ignore: ['halacious'] }],
+    'node/no-missing-require': [2, { allowModules: ['halacious'] }],
+
     // TODO: Update code and re-enable rules.
     'consistent-return': 'off',
     'global-require': 'off',
@@ -34,7 +39,7 @@ module.exports = {
     'import/extensions': [
       'error',
       'never',
-      { packages: 'always', json: 'always' },
+      { packages: 'always', json: 'always' }
     ],
 
     'no-cond-assign': ['error', 'except-parens'],
@@ -44,8 +49,8 @@ module.exports = {
     'no-console': [
       'error',
       {
-        allow: ['warn', 'error', 'info'],
-      },
+        allow: ['warn', 'error', 'info']
+      }
     ],
 
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
@@ -59,8 +64,8 @@ module.exports = {
       'error',
       {
         version: 8,
-        ignores: [],
-      },
+        ignores: []
+      }
     ],
 
     // ESLint plugin for prettier formatting
@@ -70,18 +75,17 @@ module.exports = {
       {
         // https://github.com/prettier/prettier#options
         singleQuote: true,
-        trailingComma: 'es5',
-      },
-    ],
+        trailingComma: 'none'
+      }
+    ]
   },
 
-  settings: {
-    // Allow absolute paths in imports, e.g. import Button from 'components/Button'
-    // https://github.com/benmosher/eslint-plugin-import/tree/master/resolvers
-    'import/resolver': {
-      node: {
-        moduleDirectory: ['node_modules', 'data', 'handlers'],
-      },
-    },
-  },
+  overrides: [
+    {
+      files: ['lib/representation.js'],
+      rules: {
+        'no-underscore-dangle': 'off'
+      }
+    }
+  ]
 };

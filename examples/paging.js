@@ -1,34 +1,20 @@
-let hapi = require('hapi');
-let URI = require('urijs');
-let hoek = require('hoek');
-let halacious = require('../');
+'use strict';
 
-let users = [];
+require('module-alias/register');
+
+const hapi = require('@hapi/hapi');
+const vision = require('@hapi/vision');
+const hoek = require('@hapi/hoek');
+const Uri = require('urijs');
+const halacious = require('halacious');
+
+const { name: PLUGIN } = require('halacious/package.json');
+
+const users = [];
 
 for (let i = 0; i < 100; i++) {
   users.push({ id: 1000 + i, firstName: 'Test', lastName: `User ${i}` });
 }
-
-let server = new hapi.Server();
-server.connection({ port: 8080 });
-
-server.register(require('vision'), err => {
-  if (err) return console.log(err);
-});
-
-server.register(
-  {
-    register: halacious,
-    options: { mediaTypes: ['application/json', 'application/hal+json'] },
-  },
-  err => {
-    server.plugins.halacious.namespaces
-      .add({ name: 'mycompay', prefix: 'mco' })
-      .rel('user');
-
-    if (err) console.log(err);
-  }
-);
 
 function Collection(items, start, total) {
   this.items = items || [];
@@ -39,7 +25,7 @@ function Collection(items, start, total) {
 
 Collection.prototype.toHal = function(rep, done) {
   let limit = Number(rep.request.query.limit) || 10;
-  let uri = new URI(rep.self);
+  let uri = new Uri(rep.self);
   let prev = Math.max(0, this.start - limit);
   let next = Math.min(this.total, this.start + limit);
 
@@ -60,31 +46,47 @@ Collection.prototype.toHal = function(rep, done) {
   done();
 };
 
-server.route({
-  method: 'get',
-  path: '/users',
-  config: {
-    handler(req, reply) {
-      let start = Number(req.query.start) || 0;
-      let limit = Number(req.query.limit) || 10;
-      let items = users.slice(start, start + limit);
-      reply(new Collection(items, start, users.length));
-    },
-    plugins: {
-      hal: {
-        query: '{?start,limit,q}',
-        embedded: {
-          'mco:item': {
-            path: 'items',
-            href: './{item.id}',
-          },
-        },
-      },
-    },
-  },
-});
+async function init() {
+  const server = hapi.server({ port: 8080 });
 
-server.start(err => {
-  if (err) return console.log(err);
+  await server.register(vision);
+
+  await server.register({
+    plugin: halacious,
+    options: { mediaTypes: ['application/json', 'application/hal+json'] }
+  });
+
+  server.plugins[PLUGIN].namespaces
+    .add({ name: 'mycompay', prefix: 'mco' })
+    .rel('user');
+
+  server.route({
+    method: 'get',
+    path: '/users',
+    handler(req) {
+      const start = Number(req.query.start) || 0;
+      const limit = Number(req.query.limit) || 10;
+      const items = users.slice(start, start + limit);
+      return new Collection(items, start, users.length);
+    },
+    config: {
+      plugins: {
+        hal: {
+          query: '{?start,limit,q}',
+          embedded: {
+            'mco:item': {
+              path: 'items',
+              href: './{item.id}'
+            }
+          }
+        }
+      }
+    }
+  });
+
+  await server.start();
+
   console.log('Server started at %s', server.info.uri);
-});
+}
+
+init();

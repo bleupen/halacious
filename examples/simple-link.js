@@ -1,40 +1,43 @@
-let hapi = require('hapi');
-let halacious = require('../');
+'use strict';
 
-let server = new hapi.Server();
-server.connection({ port: 8080 });
+require('module-alias/register');
 
-server.register(require('vision'), err => {
-  if (err) return console.log(err);
-});
+const hapi = require('@hapi/hapi');
+const vision = require('@hapi/vision');
+const halacious = require('halacious');
 
-server.register(halacious, err => {
-  if (err) console.log(err);
-});
+async function init() {
+  const server = hapi.server({ port: 8080 });
 
-server.route({
-  method: 'get',
-  path: '/users/{userId}',
-  config: {
-    handler(req, reply) {
-      reply({
+  await server.register(vision);
+
+  await server.register(halacious);
+
+  server.route({
+    method: 'get',
+    path: '/users/{userId}',
+    handler(req) {
+      return {
         id: req.params.userId,
         name: `User ${req.params.userId}`,
-        googlePlusId: '107835557095464780852',
-      });
+        googlePlusId: '107835557095464780852'
+      };
     },
-  },
-  plugins: {
-    hal: {
-      links: {
-        home: 'http://plus.google.com/{googlePlusId}',
-      },
-      ignore: 'googlePlusId', // remove the id property from the response
-    },
-  },
-});
+    config: {
+      plugins: {
+        hal: {
+          links: {
+            home: 'http://plus.google.com/{googlePlusId}'
+          },
+          ignore: 'googlePlusId' // remove the id property from the response
+        }
+      }
+    }
+  });
 
-server.start(err => {
-  if (err) return console.log(err);
+  await server.start();
+
   console.log('Server started at %s', server.info.uri);
-});
+}
+
+init();

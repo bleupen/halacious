@@ -1,66 +1,72 @@
-let hapi = require('hapi');
-let halacious = require('../');
+'use strict';
 
-let server = new hapi.Server();
-server.connection({ port: 8080 });
+require('module-alias/register');
 
-server.register(require('vision'), err => {
-  if (err) return console.log(err);
-});
+const hapi = require('@hapi/hapi');
+const vision = require('@hapi/vision');
+const halacious = require('halacious');
 
-server.register(halacious, err => {
-  if (err) console.log(err);
-});
+async function init() {
+  const server = hapi.server({ port: 8080 });
 
-server.route({
-  method: 'get',
-  path: '/employees/{id}',
-  config: {
-    id: 'employee.lookup',
-    handler(req, next) {
-      next(req.params);
-    },
-  },
-});
+  await server.register(vision);
 
-server.route({
-  method: 'get',
-  path: '/departments/{id}',
-  config: {
-    handler(req, reply) {
-      reply({
-        id: req.params.id,
-        employees: [
-          { id: 100, name: 'Tom' },
-          { id: 101, name: 'Dick' },
-          { id: 102, name: 'Harry' },
-        ],
-      });
-    },
-    plugins: {
-      hal: {
-        prepare(rep, next) {
-          let employees = rep.entity.employees;
+  await server.register(halacious);
 
-          // adding multiple links with the same rel will create an array of links in the payload
+  server.route({
+    method: 'get',
+    path: '/employees/{id}',
+    config: {
+      id: 'employee.lookup',
+      handler(req, next) {
+        next(req.params);
+      }
+    }
+  });
 
-          // link by route id
-          rep.link('mco:employee', rep.route('employee.lookup', employees[0]));
-
-          // or by relative path
-          rep.link('mco:employee', `../../employees/${employees[1].id}`);
-
-          // or by absolute path
-          rep.link('mco:employee', `/employees/${employees[2].id}`);
-
-          next();
-        },
+  server.route({
+    method: 'get',
+    path: '/departments/{id}',
+    config: {
+      handler(req) {
+        return {
+          id: req.params.id,
+          employees: [
+            { id: 100, name: 'Tom' },
+            { id: 101, name: 'Dick' },
+            { id: 102, name: 'Harry' }
+          ]
+        };
       },
-    },
-  },
-});
+      plugins: {
+        hal: {
+          prepare(rep, next) {
+            const employees = rep.entity.employees;
 
-server.start(err => {
-  if (err) return console.log(err);
+            // adding multiple links with the same rel will create an array of links in the payload
+
+            // link by route id
+            rep.link(
+              'mco:employee',
+              rep.route('employee.lookup', employees[0])
+            );
+
+            // or by relative path
+            rep.link('mco:employee', `../../employees/${employees[1].id}`);
+
+            // or by absolute path
+            rep.link('mco:employee', `/employees/${employees[2].id}`);
+
+            next();
+          }
+        }
+      }
+    }
+  });
+
+  await server.start();
+
   console.log('Server started at %s', server.info.uri);
-});
+}
+
+init();

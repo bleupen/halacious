@@ -1,45 +1,50 @@
-let hapi = require('hapi');
-let halacious = require('../');
+'use strict';
 
-let server = new hapi.Server({ debug: { request: ['error'] } });
+require('module-alias/register');
 
-server.connection({ port: 8080 });
+const hapi = require('@hapi/hapi');
+const vision = require('@hapi/vision');
+const halacious = require('halacious');
 
-server.register(require('vision'), err => {
-  if (err) return console.log(err);
-});
+const { name: PLUGIN } = require('halacious/package.json');
 
-server.register(halacious, err => {
-  if (err) return console.log(err);
-  server.plugins.halacious.namespaces.add({
+async function init() {
+  const server = hapi.server({ port: 8080 });
+
+  await server.register(vision);
+
+  await server.register(halacious);
+
+  server.plugins[PLUGIN].namespaces.add({
     dir: `${__dirname}/rels/mycompany`,
-    prefix: 'mco',
+    prefix: 'mco'
   });
-});
 
-server.route({
-  method: 'get',
-  path: '/users/{userId}',
-  config: {
-    handler(req, reply) {
-      reply({
+  server.route({
+    method: 'GET',
+    path: '/users/{userId}',
+    handler(req) {
+      return {
         id: req.params.userId,
         name: `User ${req.params.userId}`,
-        bossId: 200,
-      });
+        bossId: 200
+      };
     },
-  },
-  plugins: {
-    hal: {
-      links: {
-        'mco:boss': '../{bossId}',
-      },
-      ignore: 'bossId',
-    },
-  },
-});
+    config: {
+      plugins: {
+        hal: {
+          links: {
+            'mco:boss': '../{bossId}'
+          },
+          ignore: 'bossId'
+        }
+      }
+    }
+  });
 
-server.start(err => {
-  if (err) return console.log(err);
+  await server.start();
+
   console.log('Server started at %s', server.info.uri);
-});
+}
+
+init();

@@ -1,45 +1,48 @@
-let hapi = require('hapi');
-let halacious = require('../');
+'use strict';
 
-let server = new hapi.Server();
-server.connection({ port: 9090 });
+require('module-alias/register');
 
-server.register(require('vision'), err => {
-  if (err) return console.log(err);
-});
+const hapi = require('@hapi/hapi');
+const vision = require('@hapi/vision');
+const halacious = require('halacious');
 
-server.register({ register: halacious, options: { absolute: true } }, err => {
-  if (err) console.log(err);
-});
+async function init() {
+  const server = hapi.server({ port: 8080 });
 
-server.route({
-  method: 'get',
-  path: '/users/{userId}',
-  config: {
-    handler(req, reply) {
-      reply({
+  await server.register(vision);
+
+  await server.register({ plugin: halacious, options: { absolute: true } });
+
+  server.route({
+    method: 'get',
+    path: '/users/{userId}',
+    handler(req) {
+      return {
         id: req.params.userId,
         name: `User ${req.params.userId}`,
         boss: {
           id: 1234,
-          name: 'Boss Man',
-        },
-      });
+          name: 'Boss Man'
+        }
+      };
     },
-    plugins: {
-      hal: {
-        embedded: {
-          boss: {
-            path: 'boss', // the property name of the object to embed
-            href: '../{item.id}',
-          },
-        },
-      },
-    },
-  },
-});
+    config: {
+      plugins: {
+        hal: {
+          embedded: {
+            boss: {
+              path: 'boss', // the property name of the object to embed
+              href: '../{item.id}'
+            }
+          }
+        }
+      }
+    }
+  });
 
-server.start(err => {
-  if (err) return console.log(err);
+  await server.start();
+
   console.log('Server started at %s', server.info.uri);
-});
+}
+
+init();

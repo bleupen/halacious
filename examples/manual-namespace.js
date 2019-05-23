@@ -1,48 +1,56 @@
-let hapi = require('hapi');
-let halacious = require('../');
+'use strict';
 
-let server = new hapi.Server({ debug: { request: ['error'] } });
-server.connection({ port: 8080 });
+require('module-alias/register');
 
-server.register(require('vision'), err => {
-  if (err) return console.log(err);
-});
+const hapi = require('@hapi/hapi');
+const vision = require('@hapi/vision');
+const halacious = require('halacious');
 
-server.register(halacious, err => {
-  if (err) return console.log(err);
-  let ns = server.plugins.halacious.namespaces.add({
+const { name: PLUGIN } = require('halacious/package.json');
+
+async function init() {
+  const server = hapi.server({ port: 8080 });
+
+  await server.register(vision);
+
+  await server.register(halacious);
+
+  const namespace = server.plugins[PLUGIN].namespaces.add({
     name: 'mycompany',
     description: 'My Companys namespace',
-    prefix: 'mco',
+    prefix: 'mco'
   });
-  ns.rel({ name: 'users', description: 'a collection of users' });
-  ns.rel({ name: 'user', description: 'a single user' });
-  ns.rel({ name: 'boss', description: 'a users boss' });
-});
+  namespace.rel({ name: 'users', description: 'a collection of users' });
+  namespace.rel({ name: 'user', description: 'a single user' });
+  namespace.rel({ name: 'boss', description: 'a users boss' });
 
-server.route({
-  method: 'get',
-  path: '/users/{userId}',
-  config: {
-    handler(req, reply) {
-      reply({
+  server.route({
+    method: 'get',
+    path: '/users/{userId}',
+
+    handler(req) {
+      return {
         id: req.params.userId,
         name: `User ${req.params.userId}`,
-        bossId: 200,
-      });
+        bossId: 200
+      };
     },
-  },
-  plugins: {
-    hal: {
-      links: {
-        'mco:boss': '../{bossId}',
-      },
-      ignore: 'bossId',
-    },
-  },
-});
 
-server.start(err => {
-  if (err) return console.log(err);
+    config: {
+      plugins: {
+        hal: {
+          links: {
+            'mco:boss': '../{bossId}'
+          },
+          ignore: 'bossId'
+        }
+      }
+    }
+  });
+
+  await server.start();
+
   console.log('Server started at %s', server.info.uri);
-});
+}
+
+init();

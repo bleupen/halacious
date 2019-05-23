@@ -1,32 +1,39 @@
-/* eslint-disable no-shadow */
-/* eslint-env node, mocha */
-let chai = require('chai');
+'use strict';
 
-let should = chai.should();
-const { plugin } = require('../lib/plugin');
-let hapi = require('hapi');
-let sinon = require('sinon');
-let sinonChai = require('sinon-chai');
-let chaiString = require('chai-string');
-let halacious = require('../');
-let vision = require('vision');
-let _ = require('lodash');
-let url = require('url');
+require('module-alias/register');
+
+const chai = require('chai');
+
+const should = chai.should();
+const hapi = require('@hapi/hapi');
+const vision = require('@hapi/vision');
+const sinon = require('sinon');
+const sinonChai = require('sinon-chai');
+const chaiString = require('chai-string');
+const halacious = require('halacious');
+const { plugin } = require('halacious/lib/plugin');
+const _ = require('lodash');
+const url = require('url');
 
 chai.use(sinonChai);
 chai.use(chaiString);
 
+const { name: PLUGIN } = require('halacious/package.json');
+
 describe('Halacious Plugin', () => {
   let server;
+
   beforeEach(done => {
-    server = new hapi.Server({ port: 9090 });
+    server = hapi.server({ port: 9090 });
+
     done();
   });
 
   afterEach(done => {
-    server.stop().then(() => {
-      done();
-    });
+    server
+      .stop()
+      .then(done)
+      .catch(done);
   });
 
   it('should have a registration function', () => {
@@ -35,178 +42,285 @@ describe('Halacious Plugin', () => {
   });
 
   it('should expose a namespace function', done => {
-    server.register(halacious).then(() => {
-      server.plugins.halacious.should.have.property('namespaces');
-      server.plugins.halacious.namespace.should.be.a('Function');
-      done();
-    });
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        plugin.should.have.property('namespaces');
+        plugin.namespace.should.be.a('Function');
+      })
+      .then(done)
+      .catch(done);
   });
 
   it('should create a namespace', done => {
-    server.register(halacious).then(() => {
-      let ns = server.plugins.halacious.namespaces.add({
-        name: 'mycompany',
-        prefix: 'mco',
-      });
-      should.exist(ns);
-      ns.should.have.property('name', 'mycompany');
-      ns.should.have.property('prefix', 'mco');
-      ns.should.have.property('rel');
-      ns.rel.should.be.a('Function');
-      done();
-    });
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        const namespace = plugin.namespaces.add({
+          name: 'mycompany',
+          prefix: 'mco'
+        });
+
+        should.exist(namespace);
+        namespace.should.have.property('name', 'mycompany');
+        namespace.should.have.property('prefix', 'mco');
+        namespace.should.have.property('rel');
+        namespace.rel.should.be.a('Function');
+      })
+      .then(done)
+      .catch(done);
   });
 
   it('should look up a namespace', done => {
-    server.register(halacious).then(() => {
-      server.plugins.halacious.namespaces.add({
-        name: 'mycompany',
-        prefix: 'mco',
-      });
-      let ns = server.plugins.halacious.namespace('mycompany');
-      ns.rel({ name: 'boss', description: 'An employees boss' });
-      ns.rels.should.have.property('boss');
-      ns.rels.boss.should.have.property('name', 'boss');
-      ns.rels.boss.should.have.property('description', 'An employees boss');
-      done();
-    });
-  });
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
 
-  it('should return a sorted array of namespaces', () => {
-    server.register(halacious).then(() => {
-      let namespaces;
-      server.plugins.halacious.namespaces.add({
-        name: 'yourcompany',
-        prefix: 'yco',
-      });
-      server.plugins.halacious.namespaces.add({
-        name: 'mycompany',
-        prefix: 'mco',
-      });
-      server.plugins.halacious.namespaces.add({
-        name: 'ourcompany',
-        prefix: 'oco',
-      });
-
-      namespaces = server.plugins.halacious.namespaces();
-      namespaces.should.have.length(3);
-      namespaces[0].should.have.property('name', 'mycompany');
-      namespaces[1].should.have.property('name', 'ourcompany');
-      namespaces[2].should.have.property('name', 'yourcompany');
-    });
-  });
-
-  it('should fail when registering an invalid namespace', () => {
-    server.register(halacious).then(() => {
-      const plugin = server.plugins.halacious;
-      plugin.namespaces.add
-        .bind(plugin.namespaces, {
+        plugin.namespaces.add({
           name: 'mycompany',
-          prefirx: 'mco',
-        })
-        .should.throw('"prefirx" is not allowed');
-    });
+          prefix: 'mco'
+        });
+
+        const namespace = plugin.namespace('mycompany');
+        namespace.rel({ name: 'boss', description: 'An employees boss' });
+        namespace.rels.should.have.property('boss');
+        namespace.rels.boss.should.have.property('name', 'boss');
+        namespace.rels.boss.should.have.property(
+          'description',
+          'An employees boss'
+        );
+      })
+      .then(done)
+      .catch(done);
+  });
+
+  it('should return a sorted array of namespaces', done => {
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        plugin.namespaces.add({
+          name: 'yourcompany',
+          prefix: 'yco'
+        });
+
+        plugin.namespaces.add({
+          name: 'mycompany',
+          prefix: 'mco'
+        });
+
+        plugin.namespaces.add({
+          name: 'ourcompany',
+          prefix: 'oco'
+        });
+
+        const namespaces = plugin.namespaces();
+        namespaces.should.have.length(3);
+        namespaces[0].should.have.property('name', 'mycompany');
+        namespaces[1].should.have.property('name', 'ourcompany');
+        namespaces[2].should.have.property('name', 'yourcompany');
+      })
+      .then(done)
+      .catch(done);
+  });
+
+  it('should fail when registering an invalid namespace', done => {
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        plugin.namespaces.add
+          .bind(plugin.namespaces, {
+            name: 'mycompany',
+            prefirx: 'mco'
+          })
+          .should.throw('"prefirx" is not allowed');
+      })
+      .then(done)
+      .catch(done); // shouldn't be called
   });
 
   it('should add a rel to a namespace', done => {
-    server.register(halacious).then(() => {
-      let ns = server.plugins.halacious.namespaces.add({
-        name: 'mycompany',
-        prefix: 'mco',
-      });
-      ns.rel({ name: 'boss', description: 'An employees boss' });
-      ns.rels.should.have.property('boss');
-      ns.rels.boss.should.have.property('name', 'boss');
-      ns.rels.boss.should.have.property('description', 'An employees boss');
-      done();
-    });
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        const namespace = plugin.namespaces.add({
+          name: 'mycompany',
+          prefix: 'mco'
+        });
+
+        namespace.rel({ name: 'boss', description: 'An employees boss' });
+        namespace.rels.should.have.property('boss');
+        namespace.rels.boss.should.have.property('name', 'boss');
+        namespace.rels.boss.should.have.property(
+          'description',
+          'An employees boss'
+        );
+      })
+      .then(done)
+      .catch(done);
   });
 
   it('should look up a rel by prefix:name', done => {
-    server.register(halacious).then(() => {
-      let ns = server.plugins.halacious.namespaces.add({
-        name: 'mycompany',
-        prefix: 'mco',
-      });
-      ns.rel({ name: 'datasources', description: 'A list of datasources' });
-      let rel = server.plugins.halacious.rel('mco:datasources');
-      should.exist(rel);
-      rel.should.have.property('name', 'datasources');
-      rel.should.have.property('description', 'A list of datasources');
-      done();
-    });
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        const namespace = plugin.namespaces.add({
+          name: 'mycompany',
+          prefix: 'mco'
+        });
+
+        namespace.rel({
+          name: 'datasources',
+          description: 'A list of datasources'
+        });
+
+        const rel = plugin.rel('mco:datasources');
+
+        should.exist(rel);
+        rel.should.have.property('name', 'datasources');
+        rel.should.have.property('description', 'A list of datasources');
+      })
+      .then(done)
+      .catch(done);
   });
 
-  it('should remove a namespace', () => {
-    server.register(halacious).then(() => {
-      server.plugins.halacious.namespaces.add({
-        name: 'mycompany',
-        prefix: 'mco',
-      });
-      server.plugins.halacious.namespaces.add({
-        name: 'yourcompany',
-        prefix: 'yco',
-      });
-      server.plugins.halacious.namespaces().should.have.length(2);
-      server.plugins.halacious.namespaces.remove('yourcompany');
-      server.plugins.halacious.namespaces().should.have.length(1);
-      server.plugins.halacious
-        .namespaces()[0]
-        .should.have.property('name', 'mycompany');
-    });
+  it('should remove a namespace', done => {
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        plugin.namespaces.add({
+          name: 'mycompany',
+          prefix: 'mco'
+        });
+
+        plugin.namespaces.add({
+          name: 'yourcompany',
+          prefix: 'yco'
+        });
+
+        plugin.namespaces().should.have.length(2);
+
+        plugin.namespaces.remove('yourcompany');
+
+        plugin.namespaces().should.have.length(1);
+
+        plugin.namespaces()[0].should.have.property('name', 'mycompany');
+      })
+      .then(done)
+      .catch(done);
   });
 
-  it('should look up a rel by ns / name', done => {
-    server.register(halacious).then(() => {
-      let ns = server.plugins.halacious.namespaces.add({
-        name: 'mycompany',
-        prefix: 'mco',
-      });
-      ns.rel({ name: 'datasources', description: 'A list of datasources' });
-      let rel = server.plugins.halacious.rel('mycompany', 'datasources');
-      should.exist(rel);
-      rel.should.have.property('name', 'datasources');
-      rel.should.have.property('description', 'A list of datasources');
-      done();
-    });
+  it('should look up a rel by namespace / name', done => {
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        const namespace = plugin.namespaces.add({
+          name: 'mycompany',
+          prefix: 'mco'
+        });
+
+        namespace.rel({
+          name: 'datasources',
+          description: 'A list of datasources'
+        });
+
+        const rel = plugin.rel('mycompany', 'datasources');
+
+        should.exist(rel);
+        rel.should.have.property('name', 'datasources');
+        rel.should.have.property('description', 'A list of datasources');
+      })
+      .then(done)
+      .catch(done);
   });
 
   it('should add a rel to a specified namespace', done => {
-    server.register(halacious).then(() => {
-      let rels;
-      const plugin = server.plugins.halacious;
-      plugin.namespaces.add({ name: 'thiscompany', prefix: 'tco' });
-      plugin.rels.add('thiscompany', 'a_rel');
-      plugin.rels.add('thiscompany', { name: 'b_rel' });
-      rels = _.values(plugin.namespace('thiscompany').rels);
-      rels.should.have.length(2);
-      _.map(rels, 'name').should.deep.equal(['a_rel', 'b_rel']);
-      done();
-    });
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        plugin.namespaces.add({ name: 'thiscompany', prefix: 'tco' });
+
+        plugin.rels.add('thiscompany', 'a_rel');
+
+        plugin.rels.add('thiscompany', { name: 'b_rel' });
+
+        const rels = _.values(plugin.namespace('thiscompany').rels);
+
+        rels.should.have.length(2);
+        _.map(rels, 'name').should.deep.equal(['a_rel', 'b_rel']);
+      })
+      .then(done)
+      .catch(done);
   });
 
   it('should return a sorted list of rels', done => {
-    server.register(halacious).then(() => {
-      let rels;
-      const plugin = server.plugins.halacious;
-      plugin.namespaces
-        .add({ name: 'mycompany', prefix: 'mco' })
-        .rel('a_rel')
-        .rel('c_rel');
-      plugin.namespaces
-        .add({ name: 'yourcompany', prefix: 'yco' })
-        .rel('b_rel')
-        .rel('d_rel');
-      rels = plugin.rels();
-      rels.should.have.length(4);
-      _.map(rels, 'name').should.deep.equal([
-        'a_rel',
-        'b_rel',
-        'c_rel',
-        'd_rel',
-      ]);
-      done();
-    });
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        plugin.namespaces
+          .add({ name: 'mycompany', prefix: 'mco' })
+          .rel('a_rel')
+          .rel('c_rel');
+
+        plugin.namespaces
+          .add({ name: 'yourcompany', prefix: 'yco' })
+          .rel('b_rel')
+          .rel('d_rel');
+
+        const rels = plugin.rels();
+
+        rels.should.have.length(4);
+        _.map(rels, 'name').should.deep.equal([
+          'a_rel',
+          'b_rel',
+          'c_rel',
+          'd_rel'
+        ]);
+      })
+      .then(done)
+      .catch(done);
   });
 
   it('should bomb on a bad rel in strict mode', done => {
@@ -220,75 +334,97 @@ describe('Halacious Plugin', () => {
         plugins: {
           hal: {
             links: {
-              'mco:badRel': './badRel',
-            },
-          },
-        },
-      },
+              'mco:badRel': './badRel'
+            }
+          }
+        }
+      }
     });
 
     server
       .register({ plugin: halacious, options: { strict: true } })
       .then(() => {
-        server.plugins.halacious.namespaces.add({
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces.add({
           dir: `${__dirname}/rels/mycompany`,
-          prefix: 'mco',
+          prefix: 'mco'
         });
-        server
-          .inject({
-            method: 'get',
-            url: '/foo',
-            headers: { Accept: 'application/hal+json' },
-          })
-          .then(res => {
-            res.statusCode.should.equal(500);
-            done();
-          });
       })
-      .catch(err => {
-        done(err);
-      });
-  });
-
-  it('should install a directory-style namespace', done => {
-    server.register(halacious).then(() => {
-      let ns = server.plugins.halacious.namespaces.add({
-        dir: `${__dirname}/rels/mycompany`,
-        prefix: 'mco',
-      });
-      let rel1 = server.plugins.halacious.rel('mco:datasources');
-      let rel2 = server.plugins.halacious.rel('mco:datasource');
-      should.exist(ns);
-      should.exist(rel1);
-      should.exist(rel2);
-      rel1.should.have.property('name', 'datasources');
-      rel2.should.have.property('name', 'datasource');
-      done();
-    });
-  });
-
-  it('should route rel documentation', async () => {
-    await server.register(vision);
-
-    await server.register(halacious).then(() => {
-      server.plugins.halacious.namespaces.add({
-        dir: `${__dirname}/rels/mycompany`,
-        prefix: 'mco',
-      });
-    });
-
-    return server
-      .start()
       .then(() =>
         server.inject({
           method: 'get',
-          url: '/rels/mycompany/boss',
+          url: '/foo',
+          headers: { Accept: 'application/hal+json' }
+        })
+      )
+      .then(res => {
+        res.statusCode.should.equal(500);
+      })
+      .then(done)
+      .catch(done);
+  });
+
+  it('should install a directory-style namespace', done => {
+    server
+      .register(halacious)
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        const namespace = plugin.namespaces.add({
+          dir: `${__dirname}/rels/mycompany`,
+          prefix: 'mco'
+        });
+
+        const rel1 = plugin.rel('mco:datasources');
+
+        const rel2 = plugin.rel('mco:datasource');
+
+        should.exist(namespace);
+        should.exist(rel1);
+        should.exist(rel2);
+
+        rel1.should.have.property('name', 'datasources');
+        rel2.should.have.property('name', 'datasource');
+      })
+      .then(done)
+      .catch(done);
+  });
+
+  it('should route rel documentation', done => {
+    server
+      .register(vision)
+      .then(() => server.register(halacious))
+      .then(() => {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        plugin.namespaces.add({
+          dir: `${__dirname}/rels/mycompany`,
+          prefix: 'mco'
+        });
+      })
+      .then(() => server.start())
+      .then(() =>
+        server.inject({
+          method: 'get',
+          url: '/rels/mycompany/boss'
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.payload.should.not.be.empty;
-      });
+      })
+      .then(done)
+      .catch(done);
   });
 
   it('should resolve a named route path', done => {
@@ -301,26 +437,29 @@ describe('Halacious Plugin', () => {
         },
         plugins: {
           hal: {
-            name: 'test-route',
-          },
-        },
-      },
+            name: 'test-route'
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        const path = server.plugins.halacious.route('test-route', {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        const path = plugin.route('test-route', {
           a: 'i',
           b: 'aint',
-          c: 'fack',
+          c: 'fack'
         });
+
         path.should.equal('/i/aint/fack');
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should encode parameter values when resolving a named route', done => {
@@ -333,26 +472,29 @@ describe('Halacious Plugin', () => {
         },
         plugins: {
           hal: {
-            name: 'deez-treez',
-          },
-        },
-      },
+            name: 'deez-treez'
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        let path = server.plugins.halacious.route('deez-treez', {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        const path = plugin.route('deez-treez', {
           foo: 'are/fire',
-          bar: 'proof',
+          bar: 'proof'
         });
+
         path.should.not.equal('/deez/treez/are/fire/proof');
         path.should.equal('/deez/treez/are%2Ffire/proof');
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should passively ignore child objects in parameter hash when resolving a named route', done => {
@@ -365,33 +507,36 @@ describe('Halacious Plugin', () => {
         },
         plugins: {
           hal: {
-            name: 'deez-treez',
-          },
-        },
-      },
+            name: 'deez-treez'
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.route.bind(halacious, 'deez-treez', {
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
+
+        plugin.route.bind(halacious, 'deez-treez', {
           foo: 'are',
           bar: 'fire/proof',
-          things: { should: 'not break' },
+          things: { should: 'not break' }
         }).should.not.throw;
 
-        let path = server.plugins.halacious.route('deez-treez', {
+        const path = plugin.route('deez-treez', {
           foo: 'are',
           bar: 'fire/proof',
-          things: { should: 'not break' },
+          things: { should: 'not break' }
         });
+
         path.should.not.equal('/deez/treez/are/fire/proof');
         path.should.equal('/deez/treez/are/fire%2Fproof');
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should handle presence of optional Hapi route parameters in a named route', done => {
@@ -404,34 +549,36 @@ describe('Halacious Plugin', () => {
         },
         plugins: {
           hal: {
-            name: 'deez-treez',
-          },
-        },
-      },
+            name: 'deez-treez'
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
         let path = null;
-        let fn = function() {
-          path = server.plugins.halacious.route('deez-treez', {
-            are: 'fireproof',
+        const fn = function() {
+          const {
+            plugins: { [PLUGIN]: plugin }
+          } = server;
+
+          path = plugin.route('deez-treez', {
+            are: 'fireproof'
           });
         };
+
         fn.should.not.throw(Error);
+
         should.exist(path);
         path.should.equal('/deez/treez/fireproof');
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should convert a json entity into a HAL representation with self and a simple link', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -442,17 +589,23 @@ describe('Halacious Plugin', () => {
         plugins: {
           hal: {
             links: {
-              'mco:boss': './boss',
-            },
-          },
-        },
-      },
+              'mco:boss': './boss'
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -460,33 +613,31 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people/100' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
             ],
-            'mco:boss': { href: '/people/100/boss' },
+            'mco:boss': { href: '/people/100/boss' }
           },
           firstName: 'Bob',
-          lastName: 'Smith',
+          lastName: 'Smith'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should convert a json entity into a HAL representation with self and a templated link', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -497,17 +648,23 @@ describe('Halacious Plugin', () => {
         plugins: {
           hal: {
             links: {
-              'mco:boss': { href: '../{bossId}', title: 'Boss' },
-            },
-          },
-        },
-      },
+              'mco:boss': { href: '../{bossId}', title: 'Boss' }
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -515,34 +672,32 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people/100' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
             ],
-            'mco:boss': { href: '/people/1234', title: 'Boss' },
+            'mco:boss': { href: '/people/1234', title: 'Boss' }
           },
           firstName: 'Bob',
           lastName: 'Smith',
-          bossId: '1234',
+          bossId: '1234'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should allow for programmatic population of a hal entity', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -555,16 +710,22 @@ describe('Halacious Plugin', () => {
             prepare(rep, done) {
               rep.link('mco:boss', 'http://www.whitehouse.gov');
               done();
-            },
-          },
-        },
-      },
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -572,34 +733,32 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people/100' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
             ],
-            'mco:boss': { href: 'http://www.whitehouse.gov' },
+            'mco:boss': { href: 'http://www.whitehouse.gov' }
           },
           firstName: 'Bob',
           lastName: 'Smith',
-          bossId: '1234',
+          bossId: '1234'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should support a hal configuration function', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -611,15 +770,21 @@ describe('Halacious Plugin', () => {
           hal(rep, done) {
             rep.link('mco:boss', 'http://www.whitehouse.gov');
             done();
-          },
-        },
-      },
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -627,34 +792,32 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people/100' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
             ],
-            'mco:boss': { href: 'http://www.whitehouse.gov' },
+            'mco:boss': { href: 'http://www.whitehouse.gov' }
           },
           firstName: 'Bob',
           lastName: 'Smith',
-          bossId: '1234',
+          bossId: '1234'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should embed an object property', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -663,7 +826,7 @@ describe('Halacious Plugin', () => {
           return {
             firstName: 'Bob',
             lastName: 'Smith',
-            boss: { firstName: 'Boss', lastName: 'Man' },
+            boss: { firstName: 'Boss', lastName: 'Man' }
           };
         },
         plugins: {
@@ -671,18 +834,24 @@ describe('Halacious Plugin', () => {
             embedded: {
               'mco:boss': {
                 path: 'boss',
-                href: './boss',
-              },
-            },
-          },
-        },
-      },
+                href: './boss'
+              }
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -690,18 +859,20 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people/100' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
-            ],
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
+            ]
           },
           firstName: 'Bob',
           lastName: 'Smith',
@@ -709,20 +880,16 @@ describe('Halacious Plugin', () => {
             'mco:boss': {
               _links: { self: { href: '/people/100/boss' } },
               firstName: 'Boss',
-              lastName: 'Man',
-            },
-          },
+              lastName: 'Man'
+            }
+          }
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should support embedded url templates', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -732,7 +899,7 @@ describe('Halacious Plugin', () => {
             id: 100,
             firstName: 'Bob',
             lastName: 'Smith',
-            boss: { id: 200, firstName: 'Boss', lastName: 'Man' },
+            boss: { id: 200, firstName: 'Boss', lastName: 'Man' }
           };
         },
         plugins: {
@@ -740,18 +907,24 @@ describe('Halacious Plugin', () => {
             embedded: {
               'mco:boss': {
                 path: 'boss',
-                href: '/people/{self.id}/{item.id}',
-              },
-            },
-          },
-        },
-      },
+                href: '/people/{self.id}/{item.id}'
+              }
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -759,18 +932,20 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people/100' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
-            ],
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
+            ]
           },
           id: 100,
           firstName: 'Bob',
@@ -780,20 +955,16 @@ describe('Halacious Plugin', () => {
               _links: { self: { href: '/people/100/200' } },
               id: 200,
               firstName: 'Boss',
-              lastName: 'Man',
-            },
-          },
+              lastName: 'Man'
+            }
+          }
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should provide embedded collection support', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people',
@@ -805,8 +976,8 @@ describe('Halacious Plugin', () => {
             total: 2,
             items: [
               { id: 100, firstName: 'Bob', lastName: 'Smith' },
-              { id: 200, firstName: 'Boss', lastName: 'Man' },
-            ],
+              { id: 200, firstName: 'Boss', lastName: 'Man' }
+            ]
           };
         },
         plugins: {
@@ -816,19 +987,25 @@ describe('Halacious Plugin', () => {
                 path: 'items',
                 href: './{item.id}',
                 links: {
-                  'mco:boss': './boss',
-                },
-              },
-            },
-          },
-        },
-      },
+                  'mco:boss': './boss'
+                }
+              }
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -836,18 +1013,20 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
-            ],
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
+            ]
           },
           start: 0,
           count: 2,
@@ -857,33 +1036,30 @@ describe('Halacious Plugin', () => {
               {
                 _links: {
                   self: { href: '/people/100' },
-                  'mco:boss': { href: '/people/100/boss' },
+                  'mco:boss': { href: '/people/100/boss' }
                 },
                 id: 100,
                 firstName: 'Bob',
-                lastName: 'Smith',
+                lastName: 'Smith'
               },
               {
                 _links: {
                   self: { href: '/people/200' },
-                  'mco:boss': { href: '/people/200/boss' },
+                  'mco:boss': { href: '/people/200/boss' }
                 },
                 id: 200,
                 firstName: 'Boss',
-                lastName: 'Man',
-              },
-            ],
-          },
+                lastName: 'Man'
+              }
+            ]
+          }
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should invoke an optional toHal() method on the source entity', done => {
-    let result;
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -896,16 +1072,22 @@ describe('Halacious Plugin', () => {
             toHal(rep, done) {
               rep.link('mco:boss', './boss');
               done();
-            },
+            }
           };
-        },
-      },
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -913,34 +1095,32 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people/100' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
             ],
-            'mco:boss': { href: '/people/100/boss' },
+            'mco:boss': { href: '/people/100/boss' }
           },
           firstName: 'Bob',
           lastName: 'Smith',
-          bossId: '1234',
+          bossId: '1234'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it("should allow for programmatic population of a hal entity and it's configured embedded entities", done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -950,7 +1130,7 @@ describe('Halacious Plugin', () => {
             firstName: 'Bob',
             lastName: 'Smith',
             bossId: '1234',
-            foo: { id: '5678' },
+            foo: { id: '5678' }
           };
         },
         plugins: {
@@ -968,18 +1148,24 @@ describe('Halacious Plugin', () => {
                     rep.link('foo:bar', 'http://www.foo.com');
                     next();
                   }, 500);
-                },
-              },
-            },
-          },
-        },
-      },
+                }
+              }
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -987,19 +1173,21 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people/100' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
             ],
-            'mco:boss': { href: 'http://www.whitehouse.gov' },
+            'mco:boss': { href: 'http://www.whitehouse.gov' }
           },
           firstName: 'Bob',
           lastName: 'Smith',
@@ -1008,22 +1196,18 @@ describe('Halacious Plugin', () => {
             foo: {
               _links: {
                 self: { href: '/foo/5678' },
-                'foo:bar': { href: 'http://www.foo.com' },
+                'foo:bar': { href: 'http://www.foo.com' }
               },
-              id: '5678',
-            },
-          },
+              id: '5678'
+            }
+          }
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should omit missing configured embedded entities', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -1033,7 +1217,7 @@ describe('Halacious Plugin', () => {
             firstName: 'Bob',
             lastName: 'Smith',
             bossId: '1234',
-            foo: { id: '5678' },
+            foo: { id: '5678' }
           };
         },
         plugins: {
@@ -1049,22 +1233,28 @@ describe('Halacious Plugin', () => {
                 prepare(rep, next) {
                   rep.link('foo:bar', 'http://www.foo.com');
                   next();
-                },
+                }
               },
               bar: {
                 path: 'notthere',
-                href: '/bar/{item.id}',
-              },
-            },
-          },
-        },
-      },
+                href: '/bar/{item.id}'
+              }
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -1072,19 +1262,21 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people/100' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
             ],
-            'mco:boss': { href: 'http://www.whitehouse.gov' },
+            'mco:boss': { href: 'http://www.whitehouse.gov' }
           },
           firstName: 'Bob',
           lastName: 'Smith',
@@ -1093,22 +1285,18 @@ describe('Halacious Plugin', () => {
             foo: {
               _links: {
                 self: { href: '/foo/5678' },
-                'foo:bar': { href: 'http://www.foo.com' },
+                'foo:bar': { href: 'http://www.foo.com' }
               },
-              id: '5678',
-            },
-          },
+              id: '5678'
+            }
+          }
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should allow an embedded entity to be forced to be a single element array', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -1118,7 +1306,7 @@ describe('Halacious Plugin', () => {
             firstName: 'Bob',
             lastName: 'Smith',
             bossId: '1234',
-            foo: [{ id: '5678' }],
+            foo: [{ id: '5678' }]
           };
         },
         plugins: {
@@ -1134,18 +1322,24 @@ describe('Halacious Plugin', () => {
                 prepare(rep, next) {
                   rep.link('foo:bar', 'http://www.foo.com');
                   next();
-                },
-              },
-            },
-          },
-        },
-      },
+                }
+              }
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
       .then(() => {
-        server.plugins.halacious.namespaces
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
           .rel({ name: 'boss' });
       })
@@ -1153,19 +1347,21 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people/100' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
             ],
-            'mco:boss': { href: 'http://www.whitehouse.gov' },
+            'mco:boss': { href: 'http://www.whitehouse.gov' }
           },
           firstName: 'Bob',
           lastName: 'Smith',
@@ -1175,23 +1371,19 @@ describe('Halacious Plugin', () => {
               {
                 _links: {
                   self: { href: '/foo/5678' },
-                  'foo:bar': { href: 'http://www.foo.com' },
+                  'foo:bar': { href: 'http://www.foo.com' }
                 },
-                id: '5678',
-              },
-            ],
-          },
+                id: '5678'
+              }
+            ]
+          }
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should preserve 201 status code and use the location header when an entity has been POSTed', done => {
-    let result;
-
     server.route({
       method: 'post',
       path: '/people',
@@ -1200,8 +1392,8 @@ describe('Halacious Plugin', () => {
           return h
             .response({ id: 100, firstName: 'Bob', lastName: 'Smith' })
             .created('/people/100');
-        },
-      },
+        }
+      }
     });
 
     server
@@ -1210,30 +1402,28 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'post',
           url: '/people',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(201);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
-            self: { href: '/people/100' },
+            self: { href: '/people/100' }
           },
           id: 100,
           firstName: 'Bob',
-          lastName: 'Smith',
+          lastName: 'Smith'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('use of location header for absolute link generation should not break url search', done => {
-    let result;
-
     server.route({
       method: 'post',
       path: '/people',
@@ -1242,103 +1432,101 @@ describe('Halacious Plugin', () => {
           return h
             .response({ id: 100, firstName: 'Bob', lastName: 'Smith' })
             .created('/people/100?donotbreakthis=true');
-        },
-      },
+        }
+      }
     });
 
     server
       .register({
         plugin: halacious,
         options: {
-          absolute: true,
-        },
+          absolute: true
+        }
       })
       .then(() =>
         server.inject({
           method: 'post',
           url: '/people',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(201);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.have.a
           .property('_links')
           .that.has.a.property('self')
           .that.has.a.property('href')
           .that.endsWith('/people/100?donotbreakthis=true');
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should support an array of acceptable media types', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
       config: {
         handler() {
           return { firstName: 'Bob', lastName: 'Smith' };
-        },
-      },
+        }
+      }
     });
 
     server
       .register({
         plugin: halacious,
-        options: { mediaTypes: ['application/json', 'application/hal+json'] },
+        options: { mediaTypes: ['application/json', 'application/hal+json'] }
       })
       .then(() =>
         server.inject({
           method: 'get',
-          url: '/people/100',
+          url: '/people/100'
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.headers['content-type'].should.contain('application/json');
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
         result.should.deep.equal({
           _links: {
-            self: { href: '/people/100' },
+            self: { href: '/people/100' }
           },
           firstName: 'Bob',
-          lastName: 'Smith',
+          lastName: 'Smith'
         });
       })
       .then(() =>
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.headers['content-type'].should.contain('application/hal+json');
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
         result.should.deep.equal({
           _links: {
-            self: { href: '/people/100' },
+            self: { href: '/people/100' }
           },
           firstName: 'Bob',
-          lastName: 'Smith',
+          lastName: 'Smith'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should regurgitate known query parameters in the self link', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people',
@@ -1351,33 +1539,35 @@ describe('Halacious Plugin', () => {
             embedded: {
               items: {
                 path: 'items',
-                href: './{item.id}',
-              },
+                href: './{item.id}'
+              }
             },
-            query: '{?q*,start,limit}',
-          },
-        },
-      },
+            query: '{?q*,start,limit}'
+          }
+        }
+      }
     });
 
     server
       .register({
         plugin: halacious,
-        options: { mediaTypes: ['application/json', 'application/hal+json'] },
+        options: { mediaTypes: ['application/json', 'application/hal+json'] }
       })
       .then(() =>
         server.inject({
           method: 'get',
           url: '/people?q=funny&start=1&token=12345',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
-            self: { href: '/people?q=funny&start=1' },
+            self: { href: '/people?q=funny&start=1' }
           },
           _embedded: {
             items: [
@@ -1385,21 +1575,17 @@ describe('Halacious Plugin', () => {
                 _links: { self: { href: '/people/100' } },
                 id: 100,
                 firstName: 'Louis',
-                lastName: 'CK',
-              },
-            ],
-          },
+                lastName: 'CK'
+              }
+            ]
+          }
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should resolve relative locations', done => {
-    let result;
-
     server.route({
       method: 'post',
       path: '/api/people',
@@ -1408,38 +1594,38 @@ describe('Halacious Plugin', () => {
           return h
             .response({ id: 100, firstName: 'Louis', lastName: 'CK' })
             .created('api/people/100');
-        },
-      },
+        }
+      }
     });
 
     server
       .register({
         plugin: halacious,
-        options: { mediaTypes: ['application/json', 'application/hal+json'] },
+        options: { mediaTypes: ['application/json', 'application/hal+json'] }
       })
       .then(() =>
         server.inject({
           method: 'post',
           url: '/api/people',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(201);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
-            self: { href: '/api/people/100' },
+            self: { href: '/api/people/100' }
           },
           id: 100,
           firstName: 'Louis',
-          lastName: 'CK',
+          lastName: 'CK'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should preserve response headers', done => {
@@ -1451,31 +1637,31 @@ describe('Halacious Plugin', () => {
           return h
             .response({ id: 100, firstName: 'Louis', lastName: 'CK' })
             .header('Last-Modified', new Date());
-        },
-      },
+        }
+      }
     });
 
     server
       .register({
         plugin: halacious,
-        options: { mediaTypes: ['application/json', 'application/hal+json'] },
+        options: { mediaTypes: ['application/json', 'application/hal+json'] }
       })
       .then(() =>
         server.inject({
           method: 'get',
           url: '/api/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.headers['content-type'].should.equal('application/hal+json');
+
         should.exist(res.headers['last-modified']);
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   describe('when the absolute flag is turned on', () => {
@@ -1489,35 +1675,33 @@ describe('Halacious Plugin', () => {
           },
           plugins: {
             hal: {
-              absolute: true,
-            },
-          },
-        },
+              absolute: true
+            }
+          }
+        }
       });
 
       server
         .register({
           plugin: halacious,
-          options: { mediaTypes: ['application/json', 'application/hal+json'] },
+          options: { mediaTypes: ['application/json', 'application/hal+json'] }
         })
         .then(() =>
           server.inject({
             method: 'get',
             url: 'http://localhost:9090/api/people/100',
-            headers: { Accept: 'application/hal+json' },
+            headers: { Accept: 'application/hal+json' }
           })
         )
         .then(res => {
-          let result = JSON.parse(res.payload);
+          const result = JSON.parse(res.payload);
           result._links.self.should.have.property(
             'href',
             'http://localhost:9090/api/people/100'
           );
-          done();
         })
-        .catch(err => {
-          done(err);
-        });
+        .then(done)
+        .catch(done);
     });
 
     it('should create an absolute non-self link', done => {
@@ -1532,36 +1716,34 @@ describe('Halacious Plugin', () => {
             hal: {
               absolute: true,
               links: {
-                schedule: './schedule',
-              },
-            },
-          },
-        },
+                schedule: './schedule'
+              }
+            }
+          }
+        }
       });
 
       server
         .register({
           plugin: halacious,
-          options: { mediaTypes: ['application/json', 'application/hal+json'] },
+          options: { mediaTypes: ['application/json', 'application/hal+json'] }
         })
         .then(() =>
           server.inject({
             method: 'get',
             url: 'http://localhost:9090/api/people/100',
-            headers: { Accept: 'application/hal+json' },
+            headers: { Accept: 'application/hal+json' }
           })
         )
         .then(res => {
-          let result = JSON.parse(res.payload);
+          const result = JSON.parse(res.payload);
           result._links.schedule.should.have.property(
             'href',
             'http://localhost:9090/api/people/100/schedule'
           );
-          done();
         })
-        .catch(err => {
-          done(err);
-        });
+        .then(done)
+        .catch(done);
     });
 
     it('should embed an object with an absolute link', done => {
@@ -1573,7 +1755,7 @@ describe('Halacious Plugin', () => {
             return {
               firstName: 'Bob',
               lastName: 'Smith',
-              boss: { firstName: 'Boss', lastName: 'Man' },
+              boss: { firstName: 'Boss', lastName: 'Man' }
             };
           },
           plugins: {
@@ -1582,37 +1764,35 @@ describe('Halacious Plugin', () => {
               embedded: {
                 'mco:boss': {
                   path: 'boss',
-                  href: './boss',
-                },
-              },
-            },
-          },
-        },
+                  href: './boss'
+                }
+              }
+            }
+          }
+        }
       });
 
       server
         .register({
           plugin: halacious,
-          options: { mediaTypes: ['application/json', 'application/hal+json'] },
+          options: { mediaTypes: ['application/json', 'application/hal+json'] }
         })
         .then(() =>
           server.inject({
             method: 'get',
             url: 'http://localhost:9090/api/people/100',
-            headers: { Accept: 'application/hal+json' },
+            headers: { Accept: 'application/hal+json' }
           })
         )
         .then(res => {
-          let result = JSON.parse(res.payload);
+          const result = JSON.parse(res.payload);
           result._embedded['mco:boss']._links.self.should.have.property(
             'href',
             'http://localhost:9090/api/people/100/boss'
           );
-          done();
         })
-        .catch(err => {
-          done(err);
-        });
+        .then(done)
+        .catch(done);
     });
 
     it('should handle created entities', done => {
@@ -1627,35 +1807,33 @@ describe('Halacious Plugin', () => {
           },
           plugins: {
             hal: {
-              absolute: true,
-            },
-          },
-        },
+              absolute: true
+            }
+          }
+        }
       });
 
       server
         .register({
           plugin: halacious,
-          options: { mediaTypes: ['application/json', 'application/hal+json'] },
+          options: { mediaTypes: ['application/json', 'application/hal+json'] }
         })
         .then(() =>
           server.inject({
             method: 'post',
             url: 'http://localhost:9090/api/people',
-            headers: { Accept: 'application/hal+json' },
+            headers: { Accept: 'application/hal+json' }
           })
         )
         .then(res => {
-          let result = JSON.parse(res.payload);
+          const result = JSON.parse(res.payload);
           result._links.self.should.have.property(
             'href',
             'http://localhost:9090/api/people/100'
           );
-          done();
         })
-        .catch(err => {
-          done(err);
-        });
+        .then(done)
+        .catch(done);
     });
 
     it('should make configured links absolute', done => {
@@ -1672,10 +1850,10 @@ describe('Halacious Plugin', () => {
               prepare(rep, done) {
                 rep.link('mco:boss', '/api/people/101');
                 done();
-              },
-            },
-          },
-        },
+              }
+            }
+          }
+        }
       });
 
       server
@@ -1683,33 +1861,29 @@ describe('Halacious Plugin', () => {
           plugin: halacious,
           options: {
             mediaTypes: ['application/json', 'application/hal+json'],
-            absolute: true,
-          },
+            absolute: true
+          }
         })
         .then(() =>
           server.inject({
             method: 'post',
             url: 'http://localhost:9090/api/people',
-            headers: { Accept: 'application/hal+json' },
+            headers: { Accept: 'application/hal+json' }
           })
         )
         .then(res => {
-          let result = JSON.parse(res.payload);
+          const result = JSON.parse(res.payload);
           result.should.have
             .property('_links')
             .that.has.property('mco:boss')
             .that.has.property('href', 'http://localhost:9090/api/people/101');
-          done();
         })
-        .catch(err => {
-          done(err);
-        });
+        .then(done)
+        .catch(done);
     });
   });
 
   it('should support resolving embedded hrefs by ids', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -1720,15 +1894,15 @@ describe('Halacious Plugin', () => {
             id: req.params.id,
             firstName: 'Bob',
             lastName: 'Smith',
-            bossId: '1234',
+            bossId: '1234'
           };
         },
         plugins: {
           hal: {
-            query: '{?full}',
-          },
-        },
-      },
+            query: '{?full}'
+          }
+        }
+      }
     });
 
     server.route({
@@ -1736,7 +1910,7 @@ describe('Halacious Plugin', () => {
       path: '/people',
       handler() {
         return {
-          items: [{ id: 100 }, { id: 200 }],
+          items: [{ id: 100 }, { id: 200 }]
         };
       },
       config: {
@@ -1747,65 +1921,69 @@ describe('Halacious Plugin', () => {
                 path: 'items',
                 href(rep, ctx) {
                   return rep.route('person', { id: ctx.item.id });
-                },
-              },
-            },
-          },
-        },
-      },
+                }
+              }
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
-      .then(() =>
-        server.plugins.halacious.namespaces
+      .then(() => {
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
-          .rel({ name: 'person' })
-      )
+          .rel({ name: 'person' });
+      })
       .then(() =>
         server.inject({
           method: 'get',
           url: '/people',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             self: { href: '/people' },
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
-            ],
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
+            ]
           },
           _embedded: {
             'mco:person': [
               {
                 _links: {
-                  self: { href: '/people/100{?full}' },
+                  self: { href: '/people/100{?full}' }
                 },
-                id: 100,
+                id: 100
               },
               {
                 _links: {
-                  self: { href: '/people/200{?full}' },
+                  self: { href: '/people/200{?full}' }
                 },
-                id: 200,
-              },
-            ],
-          },
+                id: 200
+              }
+            ]
+          }
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should support resolving link hrefs by ids', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
@@ -1816,7 +1994,7 @@ describe('Halacious Plugin', () => {
             id: req.params.id,
             firstName: 'Bob',
             lastName: 'Smith',
-            bossId: '1234',
+            bossId: '1234'
           };
         },
         plugins: {
@@ -1825,56 +2003,61 @@ describe('Halacious Plugin', () => {
             links: {
               'mco:boss': function(rep, entity) {
                 return rep.route('person', { id: entity.bossId });
-              },
-            },
-          },
-        },
-      },
+              }
+            }
+          }
+        }
+      }
     });
 
     server
       .register(halacious)
-      .then(() =>
-        server.plugins.halacious.namespaces
+      .then(() => {
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
-          .rel({ name: 'person' })
-      )
+          .rel({ name: 'person' });
+      })
       .then(() =>
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             curies: [
-              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true },
+              { name: 'mco', href: '/rels/mycompany/{rel}', templated: true }
             ],
             self: { href: '/people/100' },
-            'mco:boss': { href: '/people/1234{?full}', templated: true },
+            'mco:boss': { href: '/people/1234{?full}', templated: true }
           },
           id: '100',
           firstName: 'Bob',
           lastName: 'Smith',
-          bossId: '1234',
+          bossId: '1234'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should support absolute api root hrefs', done => {
     server = new hapi.Server({
       debug: { request: ['*'], log: ['*'] },
-      port: 9090,
+      port: 9090
     });
-    let result;
 
     server.route({
       method: 'get',
@@ -1887,54 +2070,58 @@ describe('Halacious Plugin', () => {
         plugins: {
           hal: {
             api: 'mco:people',
-            query: '{?full}',
-          },
-        },
-      },
+            query: '{?full}'
+          }
+        }
+      }
     });
 
     server
       .register({ plugin: halacious, options: { absolute: true } })
-      .then(() =>
-        server.plugins.halacious.namespaces
+      .then(() => {
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
-          .rel({ name: 'person' })
-      )
+          .rel({ name: 'person' });
+      })
       .then(() =>
         server.inject({
           method: 'get',
-          url: '/api/',
+          url: '/api/'
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             curies: [
               {
                 name: 'mco',
                 href: `${server.info.uri}/rels/mycompany/{rel}`,
-                templated: true,
-              },
+                templated: true
+              }
             ],
             self: { href: `${server.info.uri}/api/` },
             'mco:people': {
               href: `${server.info.uri}/people{?full}`,
-              templated: true,
-            },
-          },
+              templated: true
+            }
+          }
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should embed an empty representation', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people',
@@ -1949,55 +2136,59 @@ describe('Halacious Plugin', () => {
             embedded: {
               'mco:person': {
                 path: 'employees',
-                href: '../{item.id}',
-              },
-            },
-          },
-        },
-      },
+                href: '../{item.id}'
+              }
+            }
+          }
+        }
+      }
     });
 
     server
       .register({ plugin: halacious, options: { absolute: true } })
-      .then(() =>
-        server.plugins.halacious.namespaces
+      .then(() => {
+        const {
+          plugins: {
+            [PLUGIN]: { namespaces }
+          }
+        } = server;
+
+        namespaces
           .add({ name: 'mycompany', prefix: 'mco' })
-          .rel({ name: 'person' })
-      )
+          .rel({ name: 'person' });
+      })
       .then(() =>
         server.inject({
           method: 'get',
-          url: '/people',
+          url: '/people'
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.deep.equal({
           _links: {
             curies: [
               {
                 name: 'mco',
                 href: `${server.info.uri}/rels/mycompany/{rel}`,
-                templated: true,
-              },
+                templated: true
+              }
             ],
-            self: { href: `${server.info.uri}/people` },
+            self: { href: `${server.info.uri}/people` }
           },
           _embedded: {
-            'mco:person': [],
-          },
+            'mco:person': []
+          }
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should not mess with array responses', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people',
@@ -2005,8 +2196,8 @@ describe('Halacious Plugin', () => {
         id: 'person',
         handler() {
           return [{ name: 'Dick' }, { name: 'Jane' }, { name: 'Spot' }];
-        },
-      },
+        }
+      }
     });
 
     server
@@ -2014,27 +2205,27 @@ describe('Halacious Plugin', () => {
       .then(() =>
         server.inject({
           method: 'get',
-          url: '/people',
+          url: '/people'
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result.should.be.an.instanceOf(Array);
         result.should.have.deep.members([
           { name: 'Dick' },
           { name: 'Jane' },
-          { name: 'Spot' },
+          { name: 'Spot' }
         ]);
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should not process internal routes', done => {
-    let employee = { first: 'John', last: 'Doe' };
+    const employee = { first: 'John', last: 'Doe' };
 
     server.route({
       method: 'get',
@@ -2044,8 +2235,8 @@ describe('Halacious Plugin', () => {
         handler() {
           return employee;
         },
-        isInternal: true,
-      },
+        isInternal: true
+      }
     });
 
     server
@@ -2054,21 +2245,20 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people',
-          allowInternals: true,
+          allowInternals: true
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.result.should.equal(employee);
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should support external filtering of requests', done => {
-    let employee = { first: 'John', last: 'Doe' };
+    const employee = { first: 'John', last: 'Doe' };
 
     server.route({
       method: 'get',
@@ -2077,16 +2267,20 @@ describe('Halacious Plugin', () => {
         id: 'person',
         handler() {
           return employee;
-        },
-      },
+        }
+      }
     });
 
     server
       .register({ plugin: halacious, options: { absolute: true } })
       .then(() => {
-        server.plugins.halacious.should.respondTo('filter');
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
 
-        server.plugins.halacious.filter(request => {
+        plugin.should.respondTo('filter');
+
+        plugin.filter(request => {
           should.exist(request);
           return false;
         });
@@ -2094,23 +2288,20 @@ describe('Halacious Plugin', () => {
       .then(() =>
         server.inject({
           method: 'get',
-          url: '/people',
+          url: '/people'
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.result.should.equal(employee);
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should support overriding the url protocol', done => {
-    let employee = { first: 'John', last: 'Doe' };
-
-    let result;
+    const employee = { first: 'John', last: 'Doe' };
 
     server.route({
       method: 'get',
@@ -2119,36 +2310,34 @@ describe('Halacious Plugin', () => {
         id: 'person',
         handler() {
           return employee;
-        },
-      },
+        }
+      }
     });
 
     server
       .register({
         plugin: halacious,
-        options: { absolute: true, protocol: 'https' },
+        options: { absolute: true, protocol: 'https' }
       })
       .then(() =>
         server.inject({
           method: 'get',
-          url: '/people',
+          url: '/people'
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result._links.self.href.should.match(/https/);
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should support overriding the hostname', done => {
-    let employee = { first: 'John', last: 'Doe' };
-
-    let result;
+    const employee = { first: 'John', last: 'Doe' };
 
     server.route({
       method: 'get',
@@ -2157,37 +2346,35 @@ describe('Halacious Plugin', () => {
         id: 'person',
         handler() {
           return employee;
-        },
-      },
+        }
+      }
     });
 
     server
       .register({
         plugin: halacious,
-        options: { absolute: true, host: 'www.cloud.com' },
+        options: { absolute: true, host: 'www.cloud.com' }
       })
       .then(() =>
         server.inject({
           method: 'get',
           headers: { host: null },
-          url: '/people',
+          url: '/people'
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result._links.self.href.should.match(/http:\/\/www.cloud.com/);
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should support overriding the url builder', done => {
-    let employee = { first: 'John', last: 'Doe' };
-
-    let result;
+    const employee = { first: 'John', last: 'Doe' };
 
     server.route({
       method: 'get',
@@ -2196,173 +2383,175 @@ describe('Halacious Plugin', () => {
         id: 'person',
         handler() {
           return employee;
-        },
-      },
+        }
+      }
     });
 
     server
       .register({ plugin: halacious, options: { absolute: true } })
       .then(() => {
-        server.plugins.halacious.should.respondTo('urlBuilder');
+        const {
+          plugins: { [PLUGIN]: plugin }
+        } = server;
 
-        server.plugins.halacious.urlBuilder((request, path, search) =>
+        plugin.should.respondTo('urlBuilder');
+
+        plugin.urlBuilder((request, path, search) =>
           url.format({
             hostname: 'www.myapp.com',
             port: 12345,
             pathname: path,
             protocol: 'https',
-            search,
+            search
           })
         );
       })
       .then(() =>
         server.inject({
           method: 'get',
-          url: '/people',
+          url: '/people'
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
+
         result._links.self.href.should.match(/https:\/\/www.myapp.com:12345/);
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should not HALify when another media type is preferred by default', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
       config: {
         handler() {
           return { firstName: 'Bob', lastName: 'Smith' };
-        },
-      },
+        }
+      }
     });
 
     server
       .register({
         plugin: halacious,
-        options: { requireHalJsonAcceptHeader: true },
+        options: { requireHalJsonAcceptHeader: true }
       })
       .then(() =>
         server.inject({
           method: 'get',
-          url: '/people/100',
+          url: '/people/100'
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.headers['content-type'].should.contain('application/json');
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
         result.should.deep.equal({
           firstName: 'Bob',
-          lastName: 'Smith',
+          lastName: 'Smith'
         });
       })
       .then(() =>
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/json' },
+          headers: { Accept: 'application/json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.headers['content-type'].should.contain('application/json');
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
         result.should.deep.equal({
           firstName: 'Bob',
-          lastName: 'Smith',
+          lastName: 'Smith'
         });
       })
       .then(() =>
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { Accept: 'application/hal+json' },
+          headers: { Accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.headers['content-type'].should.contain('application/hal+json');
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
         result.should.deep.equal({
           _links: {
-            self: { href: '/people/100' },
+            self: { href: '/people/100' }
           },
           firstName: 'Bob',
-          lastName: 'Smith',
+          lastName: 'Smith'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should HALify when application/hal+json is explicitly asked for', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
       config: {
         handler() {
           return { firstName: 'Bob', lastName: 'Smith' };
-        },
-      },
+        }
+      }
     });
 
     server
       .register({
         plugin: halacious,
-        options: { requireHalJsonAcceptHeader: true },
+        options: { requireHalJsonAcceptHeader: true }
       })
       .then(() =>
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { accept: 'application/hal+json' },
+          headers: { accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.headers['content-type'].should.contain('application/hal+json');
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
         result.should.deep.equal({
           _links: { self: { href: '/people/100' } },
           firstName: 'Bob',
-          lastName: 'Smith',
+          lastName: 'Smith'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 
   it('should not replace the original successful response to allow to modify it by other plugins', done => {
-    let result;
-
     server.route({
       method: 'get',
       path: '/people/{id}',
       config: {
         handler() {
           return { firstName: 'Bob', lastName: 'Smith' };
-        },
-      },
+        }
+      }
     });
 
-    let callback = sinon.spy();
+    const callback = sinon.spy();
 
-    let anotherPlugin = {
+    const anotherPlugin = {
       name: 'anotherPlugin',
       version: '1.0.0',
 
@@ -2372,21 +2561,21 @@ describe('Halacious Plugin', () => {
           method(request, h) {
             callback();
             return h.continue;
-          },
+          }
         });
-      },
+      }
     };
 
-    let plugins = [
+    const plugins = [
       {
         plugin: halacious,
         options: {
-          requireHalJsonAcceptHeader: true,
-        },
+          requireHalJsonAcceptHeader: true
+        }
       },
       {
-        plugin: anotherPlugin,
-      },
+        plugin: anotherPlugin
+      }
     ];
 
     server
@@ -2395,25 +2584,25 @@ describe('Halacious Plugin', () => {
         server.inject({
           method: 'get',
           url: '/people/100',
-          headers: { accept: 'application/hal+json' },
+          headers: { accept: 'application/hal+json' }
         })
       )
       .then(res => {
         res.statusCode.should.equal(200);
+
         res.headers['content-type'].should.contain('application/hal+json');
-        result = JSON.parse(res.payload);
+
+        const result = JSON.parse(res.payload);
 
         callback.should.be.called;
 
         result.should.deep.equal({
           _links: { self: { href: '/people/100' } },
           firstName: 'Bob',
-          lastName: 'Smith',
+          lastName: 'Smith'
         });
-        done();
       })
-      .catch(err => {
-        done(err);
-      });
+      .then(done)
+      .catch(done);
   });
 });
