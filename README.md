@@ -34,7 +34,7 @@ Start by npm installing the halacious library into your hapi project folder:
 npm install halacious --save
 ```
 
-or 
+or
 
 ```
 yarn add halacious --dev
@@ -42,27 +42,32 @@ yarn add halacious --dev
 
 Register the plugin with the app server
 ```javascript
-const hapi = require('hapi');
+const hapi = require('@hapi/hapi');
 const halacious = require('halacious');
 
-const server = new hapi.Server({ port: 8080 });
-server.register(halacious).catch(err => {
-  console.error(err);
-});
+const server = hapi.server({ port: 8080 });
 
-server.route({
-    method: 'get',
-    path: '/hello/{name}',
-    handler: function(req) {
-      return({ message: 'Hello, '+req.params.name });
+async function init () {
+    await server.register(halacious)
+
+    server.route({
+        method: 'get',
+        path: '/hello/{name}',
+        handler: function (req) {
+          return { message: 'Hello, '+req.params.name };
+        }
+    });
+
+    try {
+        await server.start()
+
+        console.info('Server started at %s', server.info.uri);
+    } catch (err)
+        console.error(err);
     }
-});
+}
 
-server.start().then(() => {
-  console.info('Server started at %s', server.info.uri);
-}).catch(err => {
-  console.error(err);
-});
+init();
 ```
 Launch the server:
 ```
@@ -91,11 +96,10 @@ Links may be declared directly within the route config.
 server.route({
     method: 'get',
     path: '/users/{userId}',
+    handler: function (req, reply) {
+        return { id: req.params.userId, name: 'User ' + req.params.userId, googlePlusId: '107835557095464780852' };
+    },
     config: {
-        handler: function (req, reply) {
-            // look up user
-            reply({ id: req.params.userId, name: 'User ' + req.params.userId, googlePlusId: '107835557095464780852' });
-        },
         plugins: {
             hal: {
                 links: {
@@ -134,18 +138,17 @@ automatically convert nested objects into embedded HAL representations (if you a
 server.route({
     method: 'get',
     path: '/users/{userId}',
-    config: {
-        handler: function (req, reply) {
-            // look up user
-            reply({
+        handler: function (req) {
+            return {
                 id: req.params.userId,
                 name: 'User ' + req.params.userId,
                 boss: {
                     id: 1234,
                     name: 'Boss Man'
                 }
-            });
+            };
         },
+    config: {
         plugins: {
             hal: {
                 embedded: {
@@ -222,19 +225,19 @@ an error or if a completely new representation has been created with `rep.factor
 server.route({
     method: 'get',
     path: '/users',
+    handler: function (req) {
+        // look up user
+        return {
+            start: 0,
+            count: 2,
+            limit: 2,
+            items: [
+                { id: 100, firstName: 'Brad', lastName: 'Leupen', googlePlusId: '107835557095464780852'},
+                { id: 101, firstName: 'Mark', lastName: 'Zuckerberg'}
+            ]
+        };
+    },
     config: {
-        handler: function (req, reply) {
-            // look up user
-            reply({
-                start: 0,
-                count: 2,
-                limit: 2,
-                items: [
-                    { id: 100, firstName: 'Brad', lastName: 'Leupen', googlePlusId: '107835557095464780852'},
-                    { id: 101, firstName: 'Mark', lastName: 'Zuckerberg'}
-                ]
-            });
-        },
         plugins: {
             hal: {
                 // you can also assign this function directly to the hal property above as a shortcut
@@ -316,19 +319,18 @@ User.prototype.toHal = function(rep, next) {
 server.route({
     method: 'get',
     path: '/users',
+    handler: function (req) {
+        return {
+            start: 0,
+            count: 2,
+            limit: 2,
+            items: [
+                new User(100, 'Brad', 'Leupen', '107835557095464780852'),
+                new User(101, 'Mark', 'Zuckerberg')
+            ]
+        };
+    },
     config: {
-        handler: function (req, reply) {
-            // look up user
-            reply({
-                start: 0,
-                count: 2,
-                limit: 2,
-                items: [
-                    new User(100, 'Brad', 'Leupen', '107835557095464780852'),
-                    new User(101, 'Mark', 'Zuckerberg')
-                ]
-            });
-        },
         plugins: {
             hal: {
                 embedded: {
@@ -379,36 +381,38 @@ happily let you be lazy but its much better if we do things the Right Way.
 ### Manually creating a namespace
 Halacious exposes its api to your Hapi server so that you may configure it at runtime like so:
  ```javascript
- var server = new hapi.Server();
- server.connection({ port: 8080 });
- var halacious = require('halacious');
- server.register(halacious, function(err){
-     if (err) return console.log(err);
-     var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
-     ns.rel({ name: 'users', description: 'a collection of users' });
-     ns.rel({ name: 'user', description: 'a single user' });
-     ns.rel({ name: 'boss', description: 'a users boss' });
- });
+const hapi = require('@hapi/hapi');
+const halacious = require('halacious');
 
- server.route({
-     method: 'get',
-     path: '/users/{userId}',
-     config: {
-         handler: function (req, reply) {
-             // look up user
-             reply({ id: req.params.userId, name: 'User ' + req.params.userId, bossId: 200 });
+async function init () {
+    await server.register(halacious);
+
+    const namespace = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
+    namespace.rel({ name: 'users', description: 'a collection of users' });
+    namespace.rel({ name: 'user', description: 'a single user' });
+    namespace.rel({ name: 'boss', description: 'a users boss' });
+
+    server.route({
+        method: 'get',
+        path: '/users/{userId}',
+        handler: function (req) {
+            return { id: req.params.userId, name: 'User ' + req.params.userId, bossId: 200 };
          },
-         plugins: {
-             hal: {
-                 links: {
-                     'mco:boss': '../{bossId}'
-                 },
-                 ignore: 'bossId'
-             }
-         }
-     }
- });
- ```
+        config: {
+            plugins: {
+                hal: {
+                    links: {
+                        'mco:boss': '../{bossId}'
+                    },
+                    ignore: 'bossId'
+                }
+            }
+        }
+    });
+}
+
+init()
+```
  Now, when we access the server we see a new type of link in the `_links` collection, `curies`. The curies link provides a mechanism
  to use shorthand rel names while preserving their uniqueness. Without the curie, the 'mco:boss' rel key would be expanded
  to read `/rels/mycompany/boss`
@@ -442,14 +446,22 @@ In our examples folder, we have created a folder `rels/mycompany` containing mar
 company's namespace. We can suck all these into the system in one fell swoop:
 
 ```javascript
-var server = new hapi.Server();
-server.connection({ port: 8080 });
-var halacious = require('halacious');
-server.register(halacious, function(err){
-    if (err) return console.log(err);
-    server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' });
-});
+const hapi = require('@hapi/hapi');
+const halacious = require('halacious');
+
+async function init () {
+    const server = hapi.server({ port: 8080 });
+
+    await server.register(halacious);
+
+    server.plugins.halacious.namespaces.add({ dir: __dirname + '/rels/mycompany', prefix: 'mco' })
+
+    await server.start()
+}
+
+init()
 ```
+
 Ideally these documents should provide your api consumer enough semantic information to navigate your api.
 
 ## Rels documentation
@@ -465,44 +477,52 @@ route for you automatically. All you need to do is to identify which resources t
 configuration option. For example:
 
 ```javascript
-server.register(halacious, function(err){
-    if (err) return console.log(err);
-    var ns = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
-    ns.rel({ name: 'users', description: 'a collection of users' });
-    ns.rel({ name: 'user', description: 'a single user' });
-});
+const hapi = require('@hapi/hapi');
+const halacious = require('halacious');
 
-server.route({
-    method: 'get',
-    path: '/users',
-    config: {
-        handler: function (req, reply) {
-            // look up user
-            reply({});
-        },
-        plugins: {
-            hal: {
-                api: 'mco:users'
+async function init () {
+    const server = hapi.server({ port: 8080 });
+
+    await server.register(halacious);
+
+    const namespace = server.plugins.halacious.namespaces.add({ name: 'mycompany', description: 'My Companys namespace', prefix: 'mco'});
+    namespace.rel({ name: 'users', description: 'a collection of users' });
+    namespace.rel({ name: 'user', description: 'a single user' });
+
+    server.route({
+        method: 'get',
+        path: '/users',
+        config: {
+            handler: function (req, reply) {
+                // look up user
+                reply({});
+            },
+            plugins: {
+                hal: {
+                    api: 'mco:users'
+                }
             }
         }
-    }
-});
+    });
 
-server.route({
-    method: 'get',
-    path: '/users/{userId}',
-    config: {
-        handler: function (req, reply) {
-            // look up user
-            reply({});
-        },
-        plugins: {
-            hal: {
-                api: 'mco:user'
+    server.route({
+        method: 'get',
+        path: '/users/{userId}',
+        config: {
+            handler: function (req, reply) {
+                // look up user
+                reply({});
+            },
+            plugins: {
+                hal: {
+                    api: 'mco:user'
+                }
             }
         }
-    }
-});
+    });
+}
+
+init()
 ```
 
 will auto-create the following api root:
