@@ -58,13 +58,9 @@ async function init () {
         }
     });
 
-    try {
-        await server.start()
+    await server.start()
 
-        console.info('Server started at %s', server.info.uri);
-    } catch (err)
-        console.error(err);
-    }
+    console.info('Server started at %s', server.info.uri);
 }
 
 init();
