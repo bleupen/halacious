@@ -96,7 +96,7 @@ Links may be declared directly within the route config.
 server.route({
     method: 'get',
     path: '/users/{userId}',
-    handler: function (req, reply) {
+    handler: function (req) {
         return { id: req.params.userId, name: 'User ' + req.params.userId, googlePlusId: '107835557095464780852' };
     },
     config: {
@@ -492,11 +492,10 @@ async function init () {
     server.route({
         method: 'get',
         path: '/users',
+        handler: function () {
+            return {};
+        },
         config: {
-            handler: function (req, reply) {
-                // look up user
-                reply({});
-            },
             plugins: {
                 hal: {
                     api: 'mco:users'
@@ -508,11 +507,10 @@ async function init () {
     server.route({
         method: 'get',
         path: '/users/{userId}',
+        handler: function () {
+            return {};
+        },
         config: {
-            handler: function (req, reply) {
-                // look up user
-                reply({});
-            },
             plugins: {
                 hal: {
                     api: 'mco:user'
