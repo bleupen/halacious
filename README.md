@@ -356,7 +356,7 @@ or
         - `links`
         - `embedded` (recursively evaluated)
         - `prepare(rep, next)`
-    - `absolute` - a boolean true/false. if true, hrefs for this representation will include protocal, server, and port.
+    - `absolute` - a boolean true/false. if true, hrefs for this representation will include protocol, server, and port.
         Default: false
 
 ## Namespaces and Rels
