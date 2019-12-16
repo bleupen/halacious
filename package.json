@@ -1,5 +1,5 @@
 {
-  "name": "@modernpoacher/halacious",
+  "name": "halacious",
   "version": "6.1.2",
   "description": "A better HAL processor for Hapi",
   "engines": {
