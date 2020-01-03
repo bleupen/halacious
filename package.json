@@ -33,7 +33,7 @@
     "gulp-jshint": "2.0.1",
     "gulp-mocha": "3.0.1",
     "gulp-tag-version": "^1.2.1",
-    "hapi": "15.0.2",
+    "hapi": "18.1.0",
     "jshint-stylish": "2.2.1",
     "mocha": "3.0.2",
     "sinon": "^1.17.3",
