@@ -2194,9 +2194,9 @@ describe('Halacious Plugin', function () {
             result = JSON.parse(res.payload);
             result.should.deep.equal({
                 _links: {
-                    curies: [{ name: 'mco', href: server.info.uri + '/rels/mycompany/{rel}', templated: true }],
-                    self: { href: server.info.uri + '/people%2Bchars' }, //self link should be encoded
-                    'mco:special-link': { href: server.info.uri + '/people%2Bchars/special%26char' } //leaf component should not be double-encoded
+                    curies: [{ name: 'mco', href: server.info.uri.toLowerCase() + '/rels/mycompany/{rel}', templated: true }],
+                    self: { href: server.info.uri.toLowerCase() + '/people%2Bchars' }, //self link should be encoded
+                    'mco:special-link': { href: server.info.uri.toLowerCase() + '/people%2Bchars/special%26char' } //leaf component should not be double-encoded
                 }
             });
             done();
