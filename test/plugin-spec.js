@@ -2151,4 +2151,55 @@ describe('Halacious Plugin', function () {
             });
         });
     });
+
+    it('should URI-encode links with special characters', function (done) {
+        var server = new hapi.Server();
+        server.connection({ port: 9090 });
+        var result;
+
+        server.route({
+            method: 'get',
+            path: '/people+chars',
+            config: {
+                id: 'special-chars',
+                handler: function (req, reply) {
+                    reply({});
+                },
+                plugins: {
+                    hal: {
+                        api: 'mco:special-chars',
+                        links: {
+                            'mco:special-link': './special%26char' //leaf components aren't encoded explicitly
+                        }
+                    }
+                }
+            }
+        });
+
+        server.register({ register: halacious, options: { absolute: true } }, function (err) {
+            if (err) return done(err);
+
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'special-chars' });
+            
+            server.plugins.halacious.namespaces
+                .add({ name: 'mycompany', prefix: 'mco' }).rel({ name: 'special-link' });
+        });
+
+        server.inject({
+            method: 'get',
+            url: '/people%2Bchars' //test encoded URL resolution
+        }, function (res) {
+            res.statusCode.should.equal(200);
+            result = JSON.parse(res.payload);
+            result.should.deep.equal({
+                _links: {
+                    curies: [{ name: 'mco', href: server.info.uri + '/rels/mycompany/{rel}', templated: true }],
+                    self: { href: server.info.uri + '/people%2Bchars' }, //self link should be encoded
+                    'mco:special-link': { href: server.info.uri.toLowerCase() + '/people%2Bchars/special%26char' } //leaf component should not be double-encoded
+                }
+            });
+            done();
+        });
+    });
 });
