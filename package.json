@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "async": "2.0.1",
-    "hoek": "4.0.2",
+    "hoek": "6.1.3",
     "joi": "5.1.0",
     "jshint": "^2.10.3",
     "lodash": "3.10.1",
