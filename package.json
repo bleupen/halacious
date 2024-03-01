@@ -41,7 +41,7 @@
     "vision": "4.1.0"
   },
   "dependencies": {
-    "async": "2.0.1",
+    "async": "2.6.4",
     "hoek": "4.0.2",
     "joi": "5.1.0",
     "jshint": "^2.10.3",
