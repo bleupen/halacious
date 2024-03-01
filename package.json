@@ -48,7 +48,7 @@
     "lodash": "^4.17.21",
     "marked": "^0.3.5",
     "negotiator": "0.6.1",
-    "pug": "2.0.0-beta6",
+    "pug": "3.0.1",
     "urijs": "^1.13.2",
     "url-template": "^2.0.4"
   }
